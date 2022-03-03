@@ -1,16 +1,22 @@
 package it.unisa.rookie;
 
+import it.unisa.rookie.piece.Piece;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
+import java.util.ArrayList;
 import javafx.application.Application;
 import javafx.event.ActionEvent;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Scene;
+import javafx.scene.control.ContentDisplay;
+import javafx.scene.control.Label;
 import javafx.scene.control.Menu;
 import javafx.scene.control.MenuBar;
 import javafx.scene.control.MenuItem;
+import javafx.scene.control.Tooltip;
 import javafx.scene.image.Image;
+import javafx.scene.image.ImageView;
 import javafx.scene.layout.Background;
 import javafx.scene.layout.BackgroundFill;
 import javafx.scene.layout.BorderPane;
@@ -30,30 +36,65 @@ public class App extends Application {
   // private static final double BOARD_MAX_WIDTH = 400;
   // private static final double BOARD_MAX_HEIGHT = 400;
 
+  private Board gameBoard;
+
   private BorderPane root;
   private MenuBar gameMenuBar;
-  private GridPane board;
+  private GridPane boardPane;
+  private ArrayList<Tile> tiles;
 
-  private GridPane createBoard() {
+  private GridPane createBoardPane() {
     GridPane board = new GridPane();
 
     board.setVgap(0);
     board.setHgap(0);
 
-    // 8x8 chessboard - each of the 64 squares will be 50x50 px wide
+    // 8x8 chessboard - each of the 64 tiles will be 50x50 px wide
     for (int i = 0; i < 8; i++) {
       board.getColumnConstraints().add(new ColumnConstraints(50));
       board.getRowConstraints().add(new RowConstraints(50));
     }
 
+    tiles = new ArrayList<>();
+    int tileIdCounter = 0;
+
+    // Assign colors and icons
     for (int i = 0; i < 8; i++) {
       for (int j = 0; j < 8; j++) {
         Color color = ((i + j) % 2 == 0) ? Color.WHITESMOKE : Color.LIGHTGRAY;
         StackPane pane = new StackPane();
-        pane.setBackground(new Background(new BackgroundFill(color, CornerRadii.EMPTY, Insets.EMPTY)));
-        board.add(pane, i, j);
+        pane.setBackground(
+          new Background(new BackgroundFill(color, CornerRadii.EMPTY, Insets.EMPTY))
+        );
+        board.add(pane, j, i);  // j -> column i -> row
         GridPane.setFillHeight(pane, true);
         GridPane.setFillWidth(pane, true);
+
+        tiles.add(new Tile(tileIdCounter, pane));
+
+        Piece p = gameBoard.getPiece(tileIdCounter);
+
+        if (p != null) {
+          String imagePath = "./pics/" + p.getColor().toString() + p.getType().getName() + ".png";
+          FileInputStream input = null;
+          try {
+            input = new FileInputStream(imagePath);
+          } catch (FileNotFoundException e) {
+            e.printStackTrace();
+          }
+          ImageView image = new ImageView(new Image(input));
+
+          image.setFitHeight(50);
+          image.setFitWidth(50);
+
+          Label imageLabel = new Label();
+          imageLabel.setContentDisplay(ContentDisplay.GRAPHIC_ONLY);
+          imageLabel.setGraphic(image);
+          imageLabel.setTooltip(new Tooltip(p.getColor().toString() + " " + p.getType().getName()));
+
+          tiles.get(tileIdCounter).getPane().getChildren().add(imageLabel);
+        }
+        tileIdCounter++;
       }
     }
 
@@ -82,14 +123,18 @@ public class App extends Application {
 
   @Override
   public void start(Stage primaryStage) {
+    gameBoard = new Board();
+
     gameMenuBar = createMenuBar();
-    board = createBoard();
+    boardPane = createBoardPane();
 
-    root = new BorderPane(board);
+    root = new BorderPane(boardPane);
     root.setTop(gameMenuBar);
-    root.setBackground(new Background(new BackgroundFill(Color.BLACK, CornerRadii.EMPTY, Insets.EMPTY)));
+    root.setBackground(
+      new Background(new BackgroundFill(Color.BLACK, CornerRadii.EMPTY, Insets.EMPTY))
+    );
 
-    board.setAlignment(Pos.CENTER);
+    boardPane.setAlignment(Pos.CENTER);
 
     // Load icon
     FileInputStream input = null;
