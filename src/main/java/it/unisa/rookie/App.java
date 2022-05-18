@@ -6,6 +6,7 @@ import java.io.FileNotFoundException;
 import java.util.ArrayList;
 import javafx.application.Application;
 import javafx.event.ActionEvent;
+import javafx.event.EventHandler;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Scene;
@@ -17,6 +18,7 @@ import javafx.scene.control.MenuItem;
 import javafx.scene.control.Tooltip;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
+import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.Background;
 import javafx.scene.layout.BackgroundFill;
 import javafx.scene.layout.BorderPane;
@@ -24,7 +26,6 @@ import javafx.scene.layout.ColumnConstraints;
 import javafx.scene.layout.CornerRadii;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.RowConstraints;
-import javafx.scene.layout.StackPane;
 import javafx.scene.paint.Color;
 import javafx.stage.Stage;
 
@@ -43,6 +44,9 @@ public class App extends Application {
   private GridPane boardPane;
   private ArrayList<Tile> tiles;
 
+  private Piece clickedPiece;
+  private Piece selectedPiece;
+
   private GridPane createBoardPane() {
     GridPane board = new GridPane();
 
@@ -58,48 +62,55 @@ public class App extends Application {
     tiles = new ArrayList<>();
     int tileIdCounter = 0;
 
-    // Assign colors and icons
+    // Create tiles
     for (int i = 0; i < 8; i++) {
       for (int j = 0; j < 8; j++) {
         Color color = ((i + j) % 2 == 0) ? Color.WHITESMOKE : Color.LIGHTGRAY;
-        StackPane pane = new StackPane();
-        pane.setBackground(
-          new Background(new BackgroundFill(color, CornerRadii.EMPTY, Insets.EMPTY))
-        );
-        board.add(pane, j, i);  // j -> column i -> row
-        GridPane.setFillHeight(pane, true);
-        GridPane.setFillWidth(pane, true);
-
-        tiles.add(new Tile(tileIdCounter, pane));
-
-        Piece p = gameBoard.getPiece(tileIdCounter);
-
-        if (p != null) {
-          String imagePath = "./pics/" + p.getColor().toString() + p.getType().getName() + ".png";
-          FileInputStream input = null;
-          try {
-            input = new FileInputStream(imagePath);
-          } catch (FileNotFoundException e) {
-            e.printStackTrace();
-          }
-          ImageView image = new ImageView(new Image(input));
-
-          image.setFitHeight(50);
-          image.setFitWidth(50);
-
-          Label imageLabel = new Label();
-          imageLabel.setContentDisplay(ContentDisplay.GRAPHIC_ONLY);
-          imageLabel.setGraphic(image);
-          imageLabel.setTooltip(new Tooltip(p.getColor().toString() + " " + p.getType().getName()));
-
-          tiles.get(tileIdCounter).getPane().getChildren().add(imageLabel);
-        }
+        Tile tile = new Tile(tileIdCounter, color, gameBoard);
+        board.add(tile, j, i);  // j -> column i -> row
+        tile.addEventFilter(MouseEvent.MOUSE_CLICKED, eventHandler);
+        tiles.add(tile);
         tileIdCounter++;
       }
     }
-
     return board;
   }
+
+  private void drawBoard() {
+    boardPane.getChildren().clear();
+    int tileCounter = 0;
+    for (int i = 0; i < 8; i++) {
+      for (int j = 0; j < 8; j++) {
+        Tile t = tiles.get(tileCounter);
+        t.addColor();
+        t.addPieceIcon();
+        t.drawBorder(this.selectedPiece);
+        boardPane.add(t, j, i);
+        tileCounter++;
+      }
+    }
+  }
+
+  EventHandler<MouseEvent> eventHandler = new EventHandler<MouseEvent>() {
+    @Override
+    public void handle(MouseEvent e) {
+      if (clickedPiece == null) {
+        Tile selectedTile = null;
+
+        if (e.getTarget() instanceof Tile) {          // An empty tile has been clicked
+          selectedTile = (Tile) e.getTarget();
+        } else if (e.getTarget() instanceof Label) {  // A non-empty tile has been clicked
+          selectedTile = (Tile) ((Label) e.getTarget()).getParent();
+        }
+        clickedPiece = gameBoard.getPiece(selectedTile.getTileId());
+        selectedPiece = clickedPiece;
+      } else {
+        clickedPiece = null;
+        selectedPiece = null;
+      }
+      drawBoard();
+    }
+  };
 
   private MenuBar createMenuBar() {
 

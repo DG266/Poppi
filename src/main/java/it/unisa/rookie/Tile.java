@@ -1,29 +1,112 @@
 package it.unisa.rookie;
 
+import it.unisa.rookie.piece.Piece;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import javafx.geometry.Insets;
+import javafx.scene.control.ContentDisplay;
+import javafx.scene.control.Label;
+import javafx.scene.control.Tooltip;
+import javafx.scene.image.Image;
+import javafx.scene.image.ImageView;
+import javafx.scene.layout.Background;
+import javafx.scene.layout.BackgroundFill;
+import javafx.scene.layout.Border;
+import javafx.scene.layout.BorderStroke;
+import javafx.scene.layout.BorderStrokeStyle;
+import javafx.scene.layout.BorderWidths;
+import javafx.scene.layout.CornerRadii;
+import javafx.scene.layout.GridPane;
 import javafx.scene.layout.StackPane;
+import javafx.scene.paint.Color;
 
-public class Tile {
-  private Integer id;
-  private StackPane pane;
+public class Tile extends StackPane {
+  private Integer tileId;
+  private Color color;
+  private Board gameBoard;
 
-  public Tile(Integer id, StackPane pane) {
-    this.id = id;
-    this.pane = pane;
+
+  public Tile(Integer tileId, Color color, Board gameBoard) {
+    this.tileId = tileId;
+    this.color = color;
+    this.gameBoard = gameBoard;
+
+    GridPane.setFillHeight(this, true);
+    GridPane.setFillWidth(this, true);
+
+    this.addColor();
+    this.addPieceIcon();
   }
 
-  public Integer getId() {
-    return id;
+  public Integer getTileId() {
+    return tileId;
   }
 
-  public void setId(Integer id) {
-    this.id = id;
+  public void setTileId(Integer tileId) {
+    this.tileId = tileId;
   }
 
-  public StackPane getPane() {
-    return pane;
+  public Color getColor() {
+    return color;
   }
 
-  public void setPane(StackPane pane) {
-    this.pane = pane;
+  public void setColor(Color color) {
+    this.color = color;
+  }
+
+  public Board getGameBoard() {
+    return gameBoard;
+  }
+
+  public void setGameBoard(Board gameBoard) {
+    this.gameBoard = gameBoard;
+  }
+
+  public void addColor() {
+    this.setBackground(
+            new Background(new BackgroundFill(this.color, CornerRadii.EMPTY, Insets.EMPTY))
+    );
+  }
+
+  public void addPieceIcon() {
+    Piece p = this.gameBoard.getPiece(this.tileId);
+
+    if (p != null) {
+      String imagePath = "./pics/" + p.getColor().toString() + p.getType().getName() + ".png";
+      FileInputStream input = null;
+      try {
+        input = new FileInputStream(imagePath);
+      } catch (FileNotFoundException e) {
+        e.printStackTrace();
+      }
+      ImageView image = new ImageView(new Image(input));
+
+      image.setFitHeight(50);
+      image.setFitWidth(50);
+
+      Label imageLabel = new Label();
+      imageLabel.setContentDisplay(ContentDisplay.GRAPHIC_ONLY);
+      imageLabel.setGraphic(image);
+      imageLabel.setTooltip(new Tooltip(p.getColor().toString() + " " + p.getType().getName()));
+
+      this.getChildren().add(imageLabel);
+    }
+  }
+
+  public void drawBorder(Piece selectedPiece) {
+    // TODO: Check if player color is correct (Black player should be able to select only his pieces etc.)
+    if (selectedPiece != null && selectedPiece.getPosition().getValue() == this.tileId) {
+      this.setBorder(
+              new Border(
+                      new BorderStroke(
+                              Color.RED,
+                              BorderStrokeStyle.SOLID,
+                              CornerRadii.EMPTY,
+                              BorderWidths.DEFAULT)
+              )
+      );
+    } else {
+      this.setBorder(null);
+    }
   }
 }
