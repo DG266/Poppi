@@ -34,4 +34,13 @@ public abstract class Piece {
   public void setPosition(Position position) {
     this.position = position;
   }
+
+  @Override
+  public String toString() {
+    return "Piece{"
+            + "type=" + type.getShortName()
+            + ", color=" + color.toString().substring(0, 1)
+            + ", pos=" + position
+            + "}";
+  }
 }

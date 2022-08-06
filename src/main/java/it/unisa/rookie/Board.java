@@ -4,13 +4,13 @@ import it.unisa.rookie.piece.Bishop;
 import it.unisa.rookie.piece.Color;
 import it.unisa.rookie.piece.King;
 import it.unisa.rookie.piece.Knight;
+import it.unisa.rookie.piece.Move;
 import it.unisa.rookie.piece.Pawn;
 import it.unisa.rookie.piece.Piece;
 import it.unisa.rookie.piece.Position;
 import it.unisa.rookie.piece.Queen;
 import it.unisa.rookie.piece.Rook;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 public class Board {
@@ -62,5 +62,25 @@ public class Board {
 
   public Piece getPiece(Integer pos) {
     return this.boardPositions.get(pos);
+  }
+
+  public void makeMove(Move move) {
+    Piece toMove = move.getMovedPiece();
+    Position source = move.getSource();
+    Position destination = move.getDestination();
+
+    if (source.getValue() != destination.getValue()) {
+      boardPositions.remove(source.getValue());
+      toMove.setPosition(destination);
+      boardPositions.put(destination.getValue(), toMove);    // Maybe I should use "putPiece()"
+      //this.putPiece(toMove);
+    }
+  }
+
+  @Override
+  public String toString() {
+    return "Board{"
+            + "boardPositions=" + boardPositions
+            + "}";
   }
 }

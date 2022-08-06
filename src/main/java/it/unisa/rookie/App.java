@@ -1,6 +1,8 @@
 package it.unisa.rookie;
 
+import it.unisa.rookie.piece.Move;
 import it.unisa.rookie.piece.Piece;
+import it.unisa.rookie.piece.Position;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.util.ArrayList;
@@ -10,14 +12,11 @@ import javafx.event.EventHandler;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Scene;
-import javafx.scene.control.ContentDisplay;
 import javafx.scene.control.Label;
 import javafx.scene.control.Menu;
 import javafx.scene.control.MenuBar;
 import javafx.scene.control.MenuItem;
-import javafx.scene.control.Tooltip;
 import javafx.scene.image.Image;
-import javafx.scene.image.ImageView;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.Background;
 import javafx.scene.layout.BackgroundFill;
@@ -82,6 +81,7 @@ public class App extends Application {
     for (int i = 0; i < 8; i++) {
       for (int j = 0; j < 8; j++) {
         Tile t = tiles.get(tileCounter);
+        t.getChildren().clear();
         t.addColor();
         t.addPieceIcon();
         t.drawBorder(this.selectedPiece);
@@ -94,20 +94,31 @@ public class App extends Application {
   EventHandler<MouseEvent> eventHandler = new EventHandler<MouseEvent>() {
     @Override
     public void handle(MouseEvent e) {
-      if (clickedPiece == null) {
-        Tile selectedTile = null;
+      Tile selectedTile = null;
 
-        if (e.getTarget() instanceof Tile) {          // An empty tile has been clicked
-          selectedTile = (Tile) e.getTarget();
-        } else if (e.getTarget() instanceof Label) {  // A non-empty tile has been clicked
-          selectedTile = (Tile) ((Label) e.getTarget()).getParent();
-        }
+      if (e.getTarget() instanceof Tile) {          // An empty tile has been clicked
+        selectedTile = (Tile) e.getTarget();
+      } else if (e.getTarget() instanceof Label) {  // A non-empty tile has been clicked
+        selectedTile = (Tile) ((Label) e.getTarget()).getParent();
+      }
+
+      //TODO: I need to come up with better variable names...
+      if (clickedPiece == null) {
         clickedPiece = gameBoard.getPiece(selectedTile.getTileId());
         selectedPiece = clickedPiece;
-      } else {
+      } else {   // Move a piece
+        Move move = new Move(
+                gameBoard,
+                clickedPiece.getPosition(),
+                Position.values()[selectedTile.getTileId()],
+                selectedPiece
+        );
+        //System.out.println(move);
+        gameBoard.makeMove(move);
         clickedPiece = null;
         selectedPiece = null;
       }
+      //System.out.println(gameBoard);
       drawBoard();
     }
   };

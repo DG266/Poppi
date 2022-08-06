@@ -81,8 +81,8 @@ public class Tile extends StackPane {
       }
       ImageView image = new ImageView(new Image(input));
 
-      image.setFitHeight(50);
-      image.setFitWidth(50);
+      image.setFitHeight(48);
+      image.setFitWidth(48);
 
       Label imageLabel = new Label();
       imageLabel.setContentDisplay(ContentDisplay.GRAPHIC_ONLY);
