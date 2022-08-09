@@ -1,8 +1,10 @@
 package it.unisa.rookie;
 
+import it.unisa.rookie.piece.Move;
 import it.unisa.rookie.piece.Piece;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
+import java.util.ArrayList;
 import javafx.geometry.Insets;
 import javafx.scene.control.ContentDisplay;
 import javafx.scene.control.Label;
@@ -19,6 +21,7 @@ import javafx.scene.layout.CornerRadii;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.StackPane;
 import javafx.scene.paint.Color;
+import javafx.scene.shape.Circle;
 
 public class Tile extends StackPane {
   private Integer tileId;
@@ -81,8 +84,8 @@ public class Tile extends StackPane {
       }
       ImageView image = new ImageView(new Image(input));
 
-      image.setFitHeight(48);
-      image.setFitWidth(48);
+      image.setFitHeight(46);
+      image.setFitWidth(46);
 
       Label imageLabel = new Label();
       imageLabel.setContentDisplay(ContentDisplay.GRAPHIC_ONLY);
@@ -107,6 +110,32 @@ public class Tile extends StackPane {
       );
     } else {
       this.setBorder(null);
+    }
+  }
+
+  public void drawLegalMove(Piece selectedPiece) {
+    if (selectedPiece != null) {
+      ArrayList<Move> legalMoves = (ArrayList<Move>) selectedPiece.getLegalMoves(this.gameBoard);
+      for (Move m : legalMoves) {
+        if (m.getDestination().getValue() == this.tileId) {
+          /*
+          this.setBorder(
+                  new Border(
+                          new BorderStroke(
+                                  Color.GREEN,
+                                  BorderStrokeStyle.SOLID,
+                                  CornerRadii.EMPTY,
+                                  BorderWidths.DEFAULT)
+                  )
+          );
+          */
+          Circle c = new Circle();
+          c.setRadius(10);
+          c.setStroke(Color.GREEN);
+          c.setFill(Color.GREEN);
+          this.getChildren().add(c);
+        }
+      }
     }
   }
 }

@@ -35,9 +35,26 @@ public class Move {
   @Override
   public String toString() {
     return "Move{"
-            + ", source=" + source
+            //+ "board=" + board
+            //+ ", source=" + source
+            + "source=" + source
             + ", destination=" + destination
             + ", movedPiece=" + movedPiece
             + "}";
   }
+
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) {
+      return true;
+    }
+    if (o == null || getClass() != o.getClass()) {
+      return false;
+    }
+    Move move = (Move) o;
+    return this.getSource() == move.getSource()
+            && this.getDestination() == move.getDestination()
+            && this.getMovedPiece().equals(move.getMovedPiece());
+  }
+
 }

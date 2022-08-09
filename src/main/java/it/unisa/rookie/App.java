@@ -26,6 +26,7 @@ import javafx.scene.layout.CornerRadii;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.RowConstraints;
 import javafx.scene.paint.Color;
+import javafx.scene.shape.Circle;
 import javafx.stage.Stage;
 
 public class App extends Application {
@@ -85,6 +86,7 @@ public class App extends Application {
         t.addColor();
         t.addPieceIcon();
         t.drawBorder(this.selectedPiece);
+        t.drawLegalMove(this.selectedPiece);
         boardPane.add(t, j, i);
         tileCounter++;
       }
@@ -100,6 +102,8 @@ public class App extends Application {
         selectedTile = (Tile) e.getTarget();
       } else if (e.getTarget() instanceof Label) {  // A non-empty tile has been clicked
         selectedTile = (Tile) ((Label) e.getTarget()).getParent();
+      } else if (e.getTarget() instanceof Circle) { // A non-empty tile (legal move) has been clicked
+        selectedTile = (Tile) ((Circle) e.getTarget()).getParent();
       }
 
       //TODO: I need to come up with better variable names...
@@ -114,7 +118,21 @@ public class App extends Application {
                 selectedPiece
         );
         //System.out.println(move);
-        gameBoard.makeMove(move);
+        System.out.println(
+                "SOURCE:" + clickedPiece.getPosition().getValue()
+                        + " | DESTINATION: " + Position.values()[selectedTile.getTileId()].getValue()
+                        + " | MOVED_PIECE: " + selectedPiece.getType()
+        );
+        ArrayList<Move> legalMoves = (ArrayList<Move>) clickedPiece.getLegalMoves(gameBoard);
+
+        System.out.println(legalMoves);
+
+        if (legalMoves.contains(move)) {
+          gameBoard.makeMove(move);
+          if (move.getMovedPiece().isFirstMove() == true) {
+            move.getMovedPiece().setFirstMove(false);
+          }
+        }
         clickedPiece = null;
         selectedPiece = null;
       }

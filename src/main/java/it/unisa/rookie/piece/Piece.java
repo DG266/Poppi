@@ -1,14 +1,19 @@
 package it.unisa.rookie.piece;
 
+import it.unisa.rookie.Board;
+import java.util.Collection;
+
 public abstract class Piece {
   private ChessPieceType type;
   private Color color;
   private Position position;
+  private boolean isFirstMove;
 
-  public Piece(ChessPieceType type, Color color, Position position) {
+  public Piece(ChessPieceType type, Color color, Position position, boolean isFirstMove) {
     this.type = type;
     this.color = color;
     this.position = position;
+    this.isFirstMove = isFirstMove;
   }
 
   public ChessPieceType getType() {
@@ -35,12 +40,39 @@ public abstract class Piece {
     this.position = position;
   }
 
+  public boolean isFirstMove() {
+    return isFirstMove;
+  }
+
+  public void setFirstMove(boolean firstMove) {
+    isFirstMove = firstMove;
+  }
+
+  public abstract Collection<Move> getLegalMoves(Board board);
+
   @Override
   public String toString() {
     return "Piece{"
             + "type=" + type.getShortName()
             + ", color=" + color.toString().substring(0, 1)
             + ", pos=" + position
+            + ", isFirstMove=" + isFirstMove
             + "}";
+  }
+
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) {
+      return true;
+    }
+    if (o == null || getClass() != o.getClass()) {
+      return false;
+    }
+    Piece piece = (Piece) o;
+
+    return this.getPosition() == piece.getPosition()
+            && this.getType() == piece.getType()
+            && this.getColor() == piece.getColor()
+            && this.isFirstMove() == piece.isFirstMove();
   }
 }
