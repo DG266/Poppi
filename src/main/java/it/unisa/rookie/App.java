@@ -106,11 +106,15 @@ public class App extends Application {
         selectedTile = (Tile) ((Circle) e.getTarget()).getParent();
       }
 
+      it.unisa.rookie.piece.Color currentPlayerColor = gameBoard.getCurrentPlayer().getPlayerColor();
+
       //TODO: I need to come up with better variable names...
-      if (clickedPiece == null) {
-        clickedPiece = gameBoard.getPiece(selectedTile.getTileId());
-        selectedPiece = clickedPiece;
-      } else {   // Move a piece
+      if (clickedPiece == null && gameBoard.getPiece(selectedTile.getTileId()) != null) {
+        if (currentPlayerColor == gameBoard.getPiece(selectedTile.getTileId()).getColor()) {
+          clickedPiece = gameBoard.getPiece(selectedTile.getTileId());
+          selectedPiece = clickedPiece;
+        }
+      } else if (clickedPiece != null) {   // Move a piece
         Move move = new Move(
                 gameBoard,
                 clickedPiece.getPosition(),
@@ -131,6 +135,12 @@ public class App extends Application {
           gameBoard.makeMove(move);
           if (move.getMovedPiece().isFirstMove() == true) {
             move.getMovedPiece().setFirstMove(false);
+          }
+          // CHANGE PLAYER
+          if (currentPlayerColor == it.unisa.rookie.piece.Color.WHITE) {
+            gameBoard.setCurrentPlayer(new Player(it.unisa.rookie.piece.Color.BLACK));
+          } else {
+            gameBoard.setCurrentPlayer(new Player(it.unisa.rookie.piece.Color.WHITE));
           }
         }
         clickedPiece = null;
@@ -163,7 +173,7 @@ public class App extends Application {
 
   @Override
   public void start(Stage primaryStage) {
-    gameBoard = new Board();
+    gameBoard = new Board(new Player(it.unisa.rookie.piece.Color.WHITE));
 
     gameMenuBar = createMenuBar();
     boardPane = createBoardPane();

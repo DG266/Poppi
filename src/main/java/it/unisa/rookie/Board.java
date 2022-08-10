@@ -15,10 +15,9 @@ import java.util.Map;
 
 public class Board {
   private Map<Integer, Piece> boardPositions;
-  //private List<Piece> blackPieces;
-  //private List<Piece> whitePieces;
+  private Player currentPlayer;
 
-  public Board() {
+  public Board(Player startingPlayer) {
     boardPositions = new HashMap<>(32, 1.0f);
 
     putPiece(new Rook(Color.BLACK, Position.A8));
@@ -54,6 +53,16 @@ public class Board {
     putPiece(new Bishop(Color.WHITE, Position.F1));
     putPiece(new Knight(Color.WHITE, Position.G1));
     putPiece(new Rook(Color.WHITE, Position.H1));
+
+    this.currentPlayer = startingPlayer;
+  }
+
+  public Player getCurrentPlayer() {
+    return currentPlayer;
+  }
+
+  public void setCurrentPlayer(Player currentPlayer) {
+    this.currentPlayer = currentPlayer;
   }
 
   private void putPiece(Piece p) {
