@@ -1,6 +1,7 @@
 package it.unisa.rookie.piece;
 
 import it.unisa.rookie.Board;
+import it.unisa.rookie.Move;
 import java.util.ArrayList;
 import java.util.Collection;
 

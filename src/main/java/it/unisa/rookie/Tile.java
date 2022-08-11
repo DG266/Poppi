@@ -1,6 +1,5 @@
 package it.unisa.rookie;
 
-import it.unisa.rookie.piece.Move;
 import it.unisa.rookie.piece.Piece;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;

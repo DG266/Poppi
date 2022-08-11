@@ -1,6 +1,7 @@
 package it.unisa.rookie.piece;
 
 import it.unisa.rookie.Board;
+import it.unisa.rookie.Move;
 import java.util.Collection;
 
 public abstract class Piece {
@@ -50,6 +51,7 @@ public abstract class Piece {
 
   public abstract Collection<Move> getLegalMoves(Board board);
 
+  /*
   @Override
   public String toString() {
     return "Piece{"
@@ -58,6 +60,25 @@ public abstract class Piece {
             + ", pos=" + position
             + ", isFirstMove=" + isFirstMove
             + "}";
+  }
+  */
+
+  @Override
+  public String toString() {
+    String pieceName;
+    if (this.getType() == ChessPieceType.PAWN) {
+      pieceName = "P";
+    } else {
+      pieceName = this.getType().getShortName();
+    }
+
+    String result = pieceName + "_" + position;
+
+    if (this.isFirstMove) {
+      result += "f";
+    }
+
+    return result;
   }
 
   @Override

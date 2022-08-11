@@ -1,17 +1,19 @@
 package it.unisa.rookie;
 
-import it.unisa.rookie.piece.Move;
 import it.unisa.rookie.piece.Piece;
 import it.unisa.rookie.piece.Position;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.util.ArrayList;
+import java.util.Stack;
+
 import javafx.application.Application;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Scene;
+import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.Menu;
 import javafx.scene.control.MenuBar;
@@ -42,10 +44,47 @@ public class App extends Application {
   private BorderPane root;
   private MenuBar gameMenuBar;
   private GridPane boardPane;
+  private GridPane buttonsPane;
   private ArrayList<Tile> tiles;
 
   private Piece clickedPiece;
   private Piece selectedPiece;
+
+  private Stack<Transition> gameHistory;
+
+
+  private MenuBar createMenuBar() {
+
+    // File Menu
+    Menu fileMenu = new Menu("File");
+
+    MenuItem fileMenuItem1 = new MenuItem("Exit");
+    fileMenuItem1.setOnAction((ActionEvent t) -> {
+      System.exit(0);
+    });
+
+    fileMenu.getItems().addAll(fileMenuItem1);
+
+    // Actions Menu
+    Menu actionsMenu = new Menu("Actions");
+
+    MenuItem actionsMenuItem1 = new MenuItem("Log current board description");
+    actionsMenuItem1.setOnAction((ActionEvent t) -> {
+      System.out.println("\nNUMBER OF MOVES: " + gameHistory.size());
+      System.out.println("TURN: " + gameBoard.getCurrentPlayer().getPlayerColor());
+      System.out.println("WHITE PIECES: " + gameBoard.getWhitePieces());
+      System.out.println("BLACK PIECES: " + gameBoard.getBlackPieces());
+    });
+
+    actionsMenu.getItems().addAll(actionsMenuItem1);
+
+    // Other Menus...
+
+    MenuBar menuBar = new MenuBar();
+    menuBar.getMenus().addAll(fileMenu, actionsMenu);
+
+    return menuBar;
+  }
 
   private GridPane createBoardPane() {
     GridPane board = new GridPane();
@@ -76,12 +115,41 @@ public class App extends Application {
     return board;
   }
 
+  private GridPane createButtonsPane() {
+    GridPane pane = new GridPane();
+    pane.setBackground(
+            new Background(new BackgroundFill(Color.WHITE, CornerRadii.EMPTY, Insets.EMPTY))
+    );
+
+    pane.setAlignment(Pos.CENTER);
+
+    pane.setHgap(10);
+    pane.setVgap(10);
+
+    Button undoButton = new Button("Undo last move");
+
+    undoButton.setOnAction(actionEvent ->  {
+      if (!gameHistory.empty()) {
+        selectedPiece = null;
+        clickedPiece = null;
+        Transition t = gameHistory.pop();
+        gameBoard = t.getStartBoard();
+        drawBoard();
+      }
+    });
+
+    pane.add(undoButton, 0, 0, 1, 1);
+
+    return pane;
+  }
+
   private void drawBoard() {
     boardPane.getChildren().clear();
     int tileCounter = 0;
     for (int i = 0; i < 8; i++) {
       for (int j = 0; j < 8; j++) {
         Tile t = tiles.get(tileCounter);
+        t.setGameBoard(gameBoard);   // Very important!
         t.getChildren().clear();
         t.addColor();
         t.addPieceIcon();
@@ -121,72 +189,52 @@ public class App extends Application {
                 Position.values()[selectedTile.getTileId()],
                 selectedPiece
         );
-        //System.out.println(move);
+
+        /*
         System.out.println(
                 "SOURCE:" + clickedPiece.getPosition().getValue()
-                        + " | DESTINATION: " + Position.values()[selectedTile.getTileId()].getValue()
-                        + " | MOVED_PIECE: " + selectedPiece.getType()
+                 + " | DESTINATION: " + Position.values()[selectedTile.getTileId()].getValue()
+                 + " | MOVED_PIECE: " + selectedPiece.getType()
         );
-        ArrayList<Move> legalMoves = (ArrayList<Move>) clickedPiece.getLegalMoves(gameBoard);
+        */
 
-        System.out.println(legalMoves);
+        // TODO: Optimize this piece of code
+        //ArrayList<Move> legalMoves = (ArrayList<Move>) clickedPiece.getLegalMoves(gameBoard);
+        ArrayList<Move> legalMoves = gameBoard.getAllPossibleLegalMoves();
 
         if (legalMoves.contains(move)) {
-          gameBoard.makeMove(move);
-          if (move.getMovedPiece().isFirstMove() == true) {
-            move.getMovedPiece().setFirstMove(false);
-          }
-          // CHANGE PLAYER
-          if (currentPlayerColor == it.unisa.rookie.piece.Color.WHITE) {
-            gameBoard.setCurrentPlayer(new Player(it.unisa.rookie.piece.Color.BLACK));
-          } else {
-            gameBoard.setCurrentPlayer(new Player(it.unisa.rookie.piece.Color.WHITE));
-          }
+          //gameBoard.makeMove(move);
+          Board newGameBoard = move.makeMove();
+          Transition t = new Transition(gameBoard, newGameBoard, move);
+          gameHistory.push(t);
+          gameBoard = newGameBoard;
         }
         clickedPiece = null;
         selectedPiece = null;
       }
-      //System.out.println(gameBoard);
       drawBoard();
     }
   };
 
-  private MenuBar createMenuBar() {
-
-    // File Menu
-    Menu fileMenu = new Menu("File");
-
-    MenuItem fileMenuItem1 = new MenuItem("Exit");
-    fileMenuItem1.setOnAction((ActionEvent t) -> {
-      System.exit(0);
-    });
-
-    fileMenu.getItems().addAll(fileMenuItem1);
-
-    // Other Menus...
-
-    MenuBar menuBar = new MenuBar();
-    menuBar.getMenus().addAll(fileMenu);
-
-    return menuBar;
-  }
-
   @Override
   public void start(Stage primaryStage) {
+    this.gameHistory = new Stack<>();
     gameBoard = new Board(new Player(it.unisa.rookie.piece.Color.WHITE));
 
     gameMenuBar = createMenuBar();
     boardPane = createBoardPane();
+    buttonsPane = createButtonsPane();
 
     root = new BorderPane(boardPane);
     root.setTop(gameMenuBar);
+    root.setBottom(buttonsPane);
     root.setBackground(
       new Background(new BackgroundFill(Color.BLACK, CornerRadii.EMPTY, Insets.EMPTY))
     );
 
     boardPane.setAlignment(Pos.CENTER);
 
-    // Load icon
+    // Load application icon
     FileInputStream input = null;
     try {
       input = new FileInputStream("pics/BlackRook.png");
