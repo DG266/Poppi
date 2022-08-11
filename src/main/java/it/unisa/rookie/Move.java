@@ -144,9 +144,16 @@ public class Move {
     if (this == o) {
       return true;
     }
+    /*
     if (o == null || getClass() != o.getClass()) {
       return false;
     }
+    */
+
+    if (!(o instanceof Move) || o == null) {
+      return false;
+    }
+
     Move move = (Move) o;
     return this.getSource() == move.getSource()
             && this.getDestination() == move.getDestination()

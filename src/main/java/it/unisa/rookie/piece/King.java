@@ -25,10 +25,10 @@ public class King extends Piece {
 
     for (int offset : possibleOffsets) {
       if (column == 0 && (offset == -9 || offset == -1 || offset == 7)) {
-        break;
+        continue;
       }
       if (column == 7 && (offset == -7 || offset == 1 || offset == 9)) {
-        break;
+        continue;
       }
 
       int candidateDestination = this.getPosition().getValue() + offset;

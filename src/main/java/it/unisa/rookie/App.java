@@ -6,7 +6,6 @@ import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.util.ArrayList;
 import java.util.Stack;
-
 import javafx.application.Application;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
@@ -52,9 +51,7 @@ public class App extends Application {
 
   private Stack<Transition> gameHistory;
 
-
   private MenuBar createMenuBar() {
-
     // File Menu
     Menu fileMenu = new Menu("File");
 
@@ -154,6 +151,7 @@ public class App extends Application {
         t.addColor();
         t.addPieceIcon();
         t.drawBorder(this.selectedPiece);
+        // TODO: This gets called too many times, fix it
         t.drawLegalMove(this.selectedPiece);
         boardPane.add(t, j, i);
         tileCounter++;
@@ -202,7 +200,15 @@ public class App extends Application {
         //ArrayList<Move> legalMoves = (ArrayList<Move>) clickedPiece.getLegalMoves(gameBoard);
         ArrayList<Move> legalMoves = gameBoard.getAllPossibleLegalMoves();
 
-        if (legalMoves.contains(move)) {
+        boolean found = false;
+        for (Move m : legalMoves) {
+          if (move.equals(m)) {
+            move = m;    // Do this to get the appropriate makeMove() (it's kinda bad)
+            found = true;
+          }
+        }
+
+        if (found) {
           //gameBoard.makeMove(move);
           Board newGameBoard = move.makeMove();
           Transition t = new Transition(gameBoard, newGameBoard, move);

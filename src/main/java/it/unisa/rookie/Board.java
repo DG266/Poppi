@@ -48,7 +48,7 @@ public class Board {
 
     this.blackPieces = new ArrayList<>();
     this.whitePieces = new ArrayList<>();
-
+    
     blackPieces.add(new Rook(Color.BLACK, Position.A8));
     blackPieces.add(new Knight(Color.BLACK, Position.B8));
     blackPieces.add(new Bishop(Color.BLACK, Position.C8));
