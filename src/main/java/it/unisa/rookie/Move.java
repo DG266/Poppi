@@ -44,21 +44,6 @@ public class Move {
     return movedPiece;
   }
 
-  /*
-  public Board makeMove() {
-    Piece toMove = this.getMovedPiece();
-    Position source = this.getSource();
-    Position destination = this.getDestination();
-
-    if (source.getValue() != destination.getValue()) {
-      this.board.removePiece(source.getValue());
-      toMove.setPosition(destination);
-      this.board.putPiece(toMove);
-    }
-    return this.board;
-  }
-  */
-
   // Generates a completely new board
   public Board makeMove() {
     ArrayList<Piece> whitePieces = new ArrayList<>(this.board.getWhitePieces());
@@ -80,14 +65,6 @@ public class Move {
           break;
         }
       }
-    }
-
-    // Choose the next player
-    Player next;
-    if (currentPlayerColor == Color.WHITE) {
-      next = new Player(Color.BLACK);
-    } else {
-      next = new Player(Color.WHITE);
     }
 
     // Fill the new board
@@ -123,6 +100,9 @@ public class Move {
     }
     clone.setPosition(destination);
     newBoardPositions.put(destination.getValue(), clone);
+
+    // Choose the next player
+    Color next = (currentPlayerColor == Color.WHITE) ? Color.BLACK : Color.WHITE;
 
     return new Board(newBoardPositions, next, this);
   }

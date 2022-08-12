@@ -47,14 +47,6 @@ public class PawnPromotionMove extends Move {
       }
     }
 
-    // Choose the next player
-    Player next;
-    if (currentPlayerColor == Color.WHITE) {
-      next = new Player(Color.BLACK);
-    } else {
-      next = new Player(Color.WHITE);
-    }
-
     // Fill the new board
     Map<Integer, Piece> newBoardPositions = new HashMap<>(32, 1.0f);
 
@@ -67,6 +59,9 @@ public class PawnPromotionMove extends Move {
 
     // Add the moved piece
     newBoardPositions.put(this.getDestination().getValue(), this.promotionPiece);
+
+    // Choose the next player
+    Color next = (currentPlayerColor == Color.WHITE) ? Color.BLACK : Color.WHITE;
 
     return new Board(newBoardPositions, next, this);
   }

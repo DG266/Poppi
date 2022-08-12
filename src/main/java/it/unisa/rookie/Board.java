@@ -1,6 +1,7 @@
 package it.unisa.rookie;
 
 import it.unisa.rookie.piece.Bishop;
+import it.unisa.rookie.piece.ChessPieceType;
 import it.unisa.rookie.piece.Color;
 import it.unisa.rookie.piece.King;
 import it.unisa.rookie.piece.Knight;
@@ -16,17 +17,18 @@ import java.util.Map;
 public class Board {
   private Map<Integer, Piece> boardPositions;
   private Player currentPlayer;
+  private Player opponentPlayer;
   private Move transition;
   private ArrayList<Piece> whitePieces;
   private ArrayList<Piece> blackPieces;
   private ArrayList<Move> whitePlayerLegalMoves;
   private ArrayList<Move> blackPlayerLegalMoves;
 
-  public Board(Map<Integer, Piece> boardPositions, Player currentPlayer, Move transition) {
+  public Board(Map<Integer, Piece> boardPositions, Color currentPlayerColor, Move transition) {
     this.boardPositions = boardPositions;
-    this.currentPlayer = currentPlayer;
     this.transition = transition;
-
+    Piece currentPlayerKing = null;
+    Piece opponentPlayerKing = null;
     this.whitePieces = new ArrayList<>();
     this.blackPieces = new ArrayList<>();
 
@@ -36,19 +38,54 @@ public class Board {
       } else {
         blackPieces.add(p);
       }
+
+      if (p.getType() == ChessPieceType.KING) {
+        if (p.getColor() == currentPlayerColor) {
+          currentPlayerKing = p;
+        } else {
+          opponentPlayerKing = p;
+        }
+      }
     }
 
     this.whitePlayerLegalMoves = this.getLegalMoves(this.whitePieces);
     this.blackPlayerLegalMoves = this.getLegalMoves(this.blackPieces);
+
+    // Current player / Opponent player creation
+    Color opponentPlayerColor = (currentPlayerColor == Color.WHITE) ? Color.BLACK : Color.WHITE;
+    ArrayList<Move> currentPlayerLegalMoves =
+            (currentPlayerColor == Color.WHITE) ? whitePlayerLegalMoves : blackPlayerLegalMoves;
+    ArrayList<Move> opponentPlayerLegalMoves =
+            (currentPlayerColor == Color.WHITE) ? blackPlayerLegalMoves : whitePlayerLegalMoves;
+
+
+    boolean isCurrentPlayerKingInCheck = !(getThreats(
+            currentPlayerKing.getPosition().getValue(),
+            opponentPlayerLegalMoves
+    ).isEmpty());
+
+    boolean isOpponentPlayerKingInCheck = !(getThreats(
+            opponentPlayerKing.getPosition().getValue(),
+            currentPlayerLegalMoves
+    ).isEmpty());
+
+    this.currentPlayer = new Player(
+            currentPlayerColor,
+            isCurrentPlayerKingInCheck
+    );
+    this.opponentPlayer = new Player(
+            opponentPlayerColor,
+            isOpponentPlayerKingInCheck
+    );
   }
 
   // Creates a "standard" starting board
-  public Board(Player startingPlayer) {
+  public Board(Color startingPlayerColor) {
     boardPositions = new HashMap<>(32, 1.0f);
 
     this.blackPieces = new ArrayList<>();
     this.whitePieces = new ArrayList<>();
-    
+
     blackPieces.add(new Rook(Color.BLACK, Position.A8));
     blackPieces.add(new Knight(Color.BLACK, Position.B8));
     blackPieces.add(new Bishop(Color.BLACK, Position.C8));
@@ -83,6 +120,13 @@ public class Board {
     whitePieces.add(new Knight(Color.WHITE, Position.G1));
     whitePieces.add(new Rook(Color.WHITE, Position.H1));
 
+    /*
+    blackPieces.add(new King(Color.BLACK, Position.E8));
+    blackPieces.add(new Pawn(Color.BLACK, Position.D3));
+    whitePieces.add(new King(Color.WHITE, Position.E1));
+    whitePieces.add(new Pawn(Color.WHITE, Position.F6));
+    */
+
     for (Piece p : blackPieces) {
       putPiece(p);
     }
@@ -94,7 +138,14 @@ public class Board {
     this.whitePlayerLegalMoves = this.getLegalMoves(this.whitePieces);
     this.blackPlayerLegalMoves = this.getLegalMoves(this.blackPieces);
 
-    this.currentPlayer = startingPlayer;
+    this.currentPlayer = new Player(
+            startingPlayerColor,
+            false
+    );
+    this.opponentPlayer = new Player(
+            (startingPlayerColor == Color.WHITE) ? Color.BLACK : Color.WHITE,
+            false
+    );
   }
 
   public Map<Integer, Piece> getBoardPositions() {
@@ -111,6 +162,14 @@ public class Board {
 
   public void setCurrentPlayer(Player currentPlayer) {
     this.currentPlayer = currentPlayer;
+  }
+
+  public Player getOpponentPlayer() {
+    return opponentPlayer;
+  }
+
+  public void setOpponentPlayer(Player opponentPlayer) {
+    this.opponentPlayer = opponentPlayer;
   }
 
   public Move getTransition() {
@@ -181,20 +240,37 @@ public class Board {
     return legalMoves;
   }
 
-  /*
-  public void makeMove(Move move) {
-    Piece toMove = move.getMovedPiece();
-    Position source = move.getSource();
-    Position destination = move.getDestination();
+  private ArrayList<Move> getThreats(int tile, ArrayList<Move> candidateThreats) {
+    ArrayList<Move> result = new ArrayList<>();
+    for (Move threat : candidateThreats) {
+      if (threat.getDestination().getValue() == tile) {
+        result.add(threat);
+      }
+    }
+    return result;
+  }
 
-    if (source.getValue() != destination.getValue()) {
-      boardPositions.remove(source.getValue());
-      toMove.setPosition(destination);
-      boardPositions.put(destination.getValue(), toMove);    // Maybe I should use "putPiece()"
-      //this.putPiece(toMove);
+  public boolean isCheckMateAvoidable(Color playerColor) {
+    Player p = this.currentPlayer.getPlayerColor() == playerColor
+            ? this.getCurrentPlayer() : this.getOpponentPlayer();
+
+    if (p.isKingInCheck()) {
+      ArrayList<Move> currentPlayerLegalMoves =
+              playerColor == Color.WHITE ? whitePlayerLegalMoves : blackPlayerLegalMoves;
+
+      // Look for a move that can "free" the king
+      for (Move m : currentPlayerLegalMoves) {
+        Board nextBoard = m.makeMove();
+        // ...found a move!
+        if (!nextBoard.getOpponentPlayer().isKingInCheck()) {
+          return true;
+        }
+      }
+      return false;
+    } else {
+      return true;
     }
   }
-  */
 
   @Override
   public String toString() {
