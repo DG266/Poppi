@@ -120,13 +120,6 @@ public class Board {
     whitePieces.add(new Knight(Color.WHITE, Position.G1));
     whitePieces.add(new Rook(Color.WHITE, Position.H1));
 
-    /*
-    blackPieces.add(new King(Color.BLACK, Position.E8));
-    blackPieces.add(new Pawn(Color.BLACK, Position.D3));
-    whitePieces.add(new King(Color.WHITE, Position.E1));
-    whitePieces.add(new Pawn(Color.WHITE, Position.F6));
-    */
-
     for (Piece p : blackPieces) {
       putPiece(p);
     }
@@ -269,6 +262,29 @@ public class Board {
       return false;
     } else {
       return true;
+    }
+  }
+
+  public boolean isInStaleMate(Color playerColor) {
+    Player p = this.currentPlayer.getPlayerColor() == playerColor
+            ? this.getCurrentPlayer() : this.getOpponentPlayer();
+
+    // If the king is not in check...
+    if (!p.isKingInCheck()) {
+      ArrayList<Move> currentPlayerLegalMoves =
+              playerColor == Color.WHITE ? whitePlayerLegalMoves : blackPlayerLegalMoves;
+
+      // ...and everything he does will put him in check...
+      for (Move m : currentPlayerLegalMoves) {
+        Board nextBoard = m.makeMove();
+        if (!nextBoard.getOpponentPlayer().isKingInCheck()) {
+          return false;
+        }
+      }
+      // ...then -> stalemate
+      return true;
+    } else {
+      return false;
     }
   }
 
