@@ -8,19 +8,14 @@ import java.util.ArrayList;
 import java.util.Random;
 
 public class RandomPlayer implements ArtificialIntelligencePlayer {
-  private Board gameBoard;
 
-  public RandomPlayer(Board gameBoard) {
-    this.gameBoard = gameBoard;
+  public RandomPlayer() {
   }
 
-  public Transition play() {
+  public Transition play(Board startingBoard) {
     ArrayList<Move> actualMoves = new ArrayList<>();
-    ArrayList<Move> legalMoves = gameBoard.getCurrentPlayer().getPlayerColor() == Color.BLACK
-            ? new ArrayList<>(gameBoard.getBlackPlayerLegalMoves())
-            : new ArrayList<>(gameBoard.getWhitePlayerLegalMoves());
 
-    for (Move m : legalMoves) {
+    for (Move m : startingBoard.getCurrentPlayer().getLegalMoves()) {
       if (!m.makeMove().getOpponentPlayer().isKingInCheck()) {
         actualMoves.add(m);
       }
@@ -31,7 +26,7 @@ public class RandomPlayer implements ArtificialIntelligencePlayer {
       int rand = (new Random()).nextInt(actualMoves.size());
       Move move = actualMoves.get(rand);
       Board newGameBoard = move.makeMove();
-      Transition result = new Transition(gameBoard, newGameBoard, move);
+      Transition result = new Transition(startingBoard, newGameBoard, move);
       return result;
     } else {
       // Should never get here

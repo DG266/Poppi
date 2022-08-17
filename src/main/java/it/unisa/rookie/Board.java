@@ -71,10 +71,12 @@ public class Board {
 
     this.currentPlayer = new Player(
             currentPlayerColor,
+            currentPlayerLegalMoves,
             isCurrentPlayerKingInCheck
     );
     this.opponentPlayer = new Player(
             opponentPlayerColor,
+            opponentPlayerLegalMoves,
             isOpponentPlayerKingInCheck
     );
   }
@@ -133,10 +135,12 @@ public class Board {
 
     this.currentPlayer = new Player(
             startingPlayerColor,
+            (startingPlayerColor == Color.WHITE) ? this.whitePlayerLegalMoves : this.blackPlayerLegalMoves,
             false
     );
     this.opponentPlayer = new Player(
             (startingPlayerColor == Color.WHITE) ? Color.BLACK : Color.WHITE,
+            (startingPlayerColor == Color.WHITE) ? this.blackPlayerLegalMoves : this.whitePlayerLegalMoves,
             false
     );
   }
@@ -243,16 +247,10 @@ public class Board {
     return result;
   }
 
-  public boolean isCheckMateAvoidable(Color playerColor) {
-    Player p = this.currentPlayer.getPlayerColor() == playerColor
-            ? this.getCurrentPlayer() : this.getOpponentPlayer();
-
-    if (p.isKingInCheck()) {
-      ArrayList<Move> currentPlayerLegalMoves =
-              playerColor == Color.WHITE ? whitePlayerLegalMoves : blackPlayerLegalMoves;
-
+  public boolean isCheckMateAvoidable(Player player) {
+    if (player.isKingInCheck()) {
       // Look for a move that can "free" the king
-      for (Move m : currentPlayerLegalMoves) {
+      for (Move m : player.getLegalMoves()) {
         Board nextBoard = m.makeMove();
         // ...found a move!
         if (!nextBoard.getOpponentPlayer().isKingInCheck()) {
@@ -265,17 +263,11 @@ public class Board {
     }
   }
 
-  public boolean isInStaleMate(Color playerColor) {
-    Player p = this.currentPlayer.getPlayerColor() == playerColor
-            ? this.getCurrentPlayer() : this.getOpponentPlayer();
-
+  public boolean isInStaleMate(Player player) {
     // If the king is not in check...
-    if (!p.isKingInCheck()) {
-      ArrayList<Move> currentPlayerLegalMoves =
-              playerColor == Color.WHITE ? whitePlayerLegalMoves : blackPlayerLegalMoves;
-
+    if (!player.isKingInCheck()) {
       // ...and everything he does will put him in check...
-      for (Move m : currentPlayerLegalMoves) {
+      for (Move m : player.getLegalMoves()) {
         Board nextBoard = m.makeMove();
         if (!nextBoard.getOpponentPlayer().isKingInCheck()) {
           return false;
@@ -286,6 +278,23 @@ public class Board {
     } else {
       return false;
     }
+  }
+
+  public boolean matchIsOver() {
+    return !(this.isCheckMateAvoidable(this.getCurrentPlayer()))
+            || this.isInStaleMate(this.getCurrentPlayer());
+  }
+
+  public Player getWhitePlayer() {
+    return this.getCurrentPlayer().getPlayerColor() == Color.WHITE
+            ? this.getCurrentPlayer()
+            : this.getOpponentPlayer();
+  }
+
+  public Player getBlackPlayer() {
+    return this.getCurrentPlayer().getPlayerColor() == Color.BLACK
+            ? this.getCurrentPlayer()
+            : this.getOpponentPlayer();
   }
 
   @Override

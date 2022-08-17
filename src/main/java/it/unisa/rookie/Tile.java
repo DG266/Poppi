@@ -117,23 +117,29 @@ public class Tile extends StackPane {
       ArrayList<Move> legalMoves = (ArrayList<Move>) selectedPiece.getLegalMoves(this.gameBoard);
       for (Move m : legalMoves) {
         if (m.getDestination().getValue() == this.tileId) {
-          /*
-          this.setBorder(
-                  new Border(
-                          new BorderStroke(
-                                  Color.GREEN,
-                                  BorderStrokeStyle.SOLID,
-                                  CornerRadii.EMPTY,
-                                  BorderWidths.DEFAULT)
-                  )
-          );
-          */
           Circle c = new Circle();
           c.setRadius(10);
           c.setStroke(Color.GREEN);
           c.setFill(Color.GREEN);
           this.getChildren().add(c);
         }
+      }
+    }
+  }
+
+  // TODO: choose better colors...?
+  public void drawArtificialIntelligenceMove(Move m) {
+    if (m != null) {
+      int source = m.getSource().getValue();
+      int destination = m.getDestination().getValue();
+      if (source == this.tileId) {
+        this.setBackground(
+                new Background(new BackgroundFill(Color.YELLOW, CornerRadii.EMPTY, Insets.EMPTY))
+        );
+      } else if (destination == this.tileId) {
+        this.setBackground(
+                new Background(new BackgroundFill(Color.GREENYELLOW, CornerRadii.EMPTY, Insets.EMPTY))
+        );
       }
     }
   }

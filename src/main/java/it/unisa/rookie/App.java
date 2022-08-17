@@ -1,6 +1,7 @@
 package it.unisa.rookie;
 
 import it.unisa.rookie.ai.ArtificialIntelligencePlayer;
+import it.unisa.rookie.ai.ArtificialIntelligenceTask;
 import it.unisa.rookie.ai.RandomPlayer;
 import it.unisa.rookie.piece.Piece;
 import it.unisa.rookie.piece.Position;
@@ -9,11 +10,8 @@ import java.io.FileNotFoundException;
 import java.util.ArrayList;
 import java.util.Optional;
 import java.util.Stack;
-import javafx.animation.KeyFrame;
-import javafx.animation.Timeline;
 import javafx.application.Application;
 import javafx.application.Platform;
-import javafx.concurrent.Task;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
 import javafx.geometry.Insets;
@@ -28,7 +26,9 @@ import javafx.scene.control.Label;
 import javafx.scene.control.Menu;
 import javafx.scene.control.MenuBar;
 import javafx.scene.control.MenuItem;
+import javafx.scene.control.RadioMenuItem;
 import javafx.scene.control.TextArea;
+import javafx.scene.control.ToggleGroup;
 import javafx.scene.image.Image;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.Background;
@@ -42,7 +42,6 @@ import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Circle;
 import javafx.stage.Stage;
-import javafx.util.Duration;
 
 public class App extends Application {
   private static final double SCENE_WIDTH = 1280;
@@ -60,19 +59,23 @@ public class App extends Application {
   private GridPane buttonsPane;
   private VBox logPane;
   private CheckMenuItem logMenuItem;
-  private CheckMenuItem easyDifficulty;
+  private RadioMenuItem easyDifficulty;
+  private RadioMenuItem mediumDifficulty;
+  private RadioMenuItem hardDifficulty;
   private ArrayList<Tile> tiles;
   private TextArea log;
 
   private it.unisa.rookie.piece.Color playerColor;
 
-  private Piece clickedPiece;
+  private Piece selectedPiece;
 
   private Stack<Transition> gameHistory;
 
+  private Transition aiTransition;
+
   private MenuBar createMenuBar() {
     // File Menu
-    Menu fileMenu = new Menu("File");
+    final Menu fileMenu = new Menu("File");
 
     MenuItem fileMenuItem1 = new MenuItem("Exit");
     fileMenuItem1.setOnAction((ActionEvent t) -> {
@@ -82,7 +85,7 @@ public class App extends Application {
     fileMenu.getItems().addAll(fileMenuItem1);
 
     // Actions Menu
-    Menu actionsMenu = new Menu("Actions");
+    final Menu actionsMenu = new Menu("Actions");
 
     logMenuItem = new CheckMenuItem("Log board description");
     logMenuItem.setOnAction((ActionEvent t) -> {
@@ -96,16 +99,22 @@ public class App extends Application {
     actionsMenu.getItems().addAll(logMenuItem);
 
     // Difficulty Menu
-    Menu difficultyMenu = new Menu("Difficulty");
+    final Menu difficultyMenu = new Menu("Difficulty");
 
-    easyDifficulty = new CheckMenuItem("Easy");
-    easyDifficulty.setOnAction((ActionEvent t) -> {
-      if (easyDifficulty.isSelected()) {
-        log.appendText("Easy difficulty set!\n");
-      }
-    });
+    easyDifficulty = new RadioMenuItem("Easy");
+    mediumDifficulty = new RadioMenuItem("Medium");
+    hardDifficulty = new RadioMenuItem("Hard");
 
-    difficultyMenu.getItems().addAll(easyDifficulty);
+    ToggleGroup radioGroup = new ToggleGroup();
+
+    easyDifficulty.setToggleGroup(radioGroup);
+    mediumDifficulty.setToggleGroup(radioGroup);
+    hardDifficulty.setToggleGroup(radioGroup);
+
+    // Default value
+    easyDifficulty.setSelected(true);
+
+    difficultyMenu.getItems().addAll(easyDifficulty, mediumDifficulty, hardDifficulty);
 
     // Other Menus...
 
@@ -160,7 +169,8 @@ public class App extends Application {
     Button undoButton = new Button("Undo last move");
     undoButton.setOnAction(actionEvent ->  {
       if (!gameHistory.empty()) {
-        clickedPiece = null;
+        selectedPiece = null;
+        aiTransition = null;
         log.appendText("Undo move #" + gameHistory.size() + "\n");
         Transition t = gameHistory.pop();
         gameBoard = t.getStartBoard();
@@ -200,46 +210,21 @@ public class App extends Application {
         Tile t = tiles.get(tileCounter);
         t.setGameBoard(gameBoard);   // Very important!
         t.getChildren().clear();
+
         t.addColor();
         t.addPieceIcon();
-        t.drawBorder(this.clickedPiece);
+        t.drawBorder(this.selectedPiece);
+
         // TODO: This gets called too many times, fix it
-        t.drawLegalMove(this.clickedPiece);
+        t.drawLegalMove(this.selectedPiece);
+
+        if (aiTransition != null) {
+          t.drawArtificialIntelligenceMove(aiTransition.getMove());
+        }
+
         boardPane.add(t, j, i);
         tileCounter++;
       }
-    }
-  }
-
-  private class ArtificialIntelligenceTask extends Task<Void> {
-    @Override
-    protected Void call() throws Exception {
-      ArtificialIntelligencePlayer ai;
-
-      if (easyDifficulty.isSelected()) {
-        ai = new RandomPlayer(gameBoard);
-      } else {
-        ai = new RandomPlayer(gameBoard);  // Default choice - for now
-      }
-
-      if (ai instanceof RandomPlayer) {
-        // The "random player" is too fast: this will slow him down
-        Timeline timeline = new Timeline(new KeyFrame(Duration.seconds(2), new EventHandler<ActionEvent>() {
-          @Override
-          public void handle(ActionEvent event) {
-            Transition result = ai.play();
-            gameHistory.push(result);
-            gameBoard = result.getEndBoard();
-            if (logMenuItem.isSelected()) {
-              logBoardInfo();
-            }
-            drawBoard();
-          }
-        }));
-        timeline.play();
-      }
-
-      return null;
     }
   }
 
@@ -254,35 +239,40 @@ public class App extends Application {
       }
 
       // The match is over, the board is "untouchable" now
-      if (!(gameBoard.isCheckMateAvoidable(gameBoard.getCurrentPlayer().getPlayerColor()))
-              || gameBoard.isInStaleMate(gameBoard.getCurrentPlayer().getPlayerColor())) {
+      if (gameBoard.matchIsOver()) {
         return;
       }
 
       Tile selectedTile = null;
 
-      if (e.getTarget() instanceof Tile) {          // An empty tile has been clicked
+      if (e.getTarget() instanceof Tile) {
+        // An empty tile has been clicked
         selectedTile = (Tile) e.getTarget();
-      } else if (e.getTarget() instanceof Label) {  // A non-empty tile has been clicked
+      } else if (e.getTarget() instanceof Label) {
+        // A non-empty tile has been clicked
         selectedTile = (Tile) ((Label) e.getTarget()).getParent();
-      } else if (e.getTarget() instanceof Circle) { // A non-empty tile (legal move) has been clicked
+      } else if (e.getTarget() instanceof Circle) {
+        // A non-empty tile (legal move) has been clicked
         selectedTile = (Tile) ((Circle) e.getTarget()).getParent();
       }
 
-      it.unisa.rookie.piece.Color currentPlayerColor = gameBoard.getCurrentPlayer().getPlayerColor();
+      // != null if the selected tile contains a piece
+      // == null if the selected tile is empty
+      Piece clicked = gameBoard.getPiece(selectedTile.getTileId());
 
-      //TODO: I need to come up with better variable names...
-      if (clickedPiece == null
-              && gameBoard.getPiece(selectedTile.getTileId()) != null
-              && currentPlayerColor == gameBoard.getPiece(selectedTile.getTileId()).getColor()
+      Player currentPlayer = gameBoard.getCurrentPlayer();
+
+      if (selectedPiece == null
+              && clicked != null
+              && currentPlayer.getPlayerColor() == clicked.getColor()
               && isPlayerTurn()) {
-          clickedPiece = gameBoard.getPiece(selectedTile.getTileId());
-      } else if (clickedPiece != null) {   // Move a piece
+          selectedPiece = gameBoard.getPiece(selectedTile.getTileId());
+      } else if (selectedPiece != null) {
         Move move = new Move(
                 gameBoard,
-                clickedPiece.getPosition(),
+                selectedPiece.getPosition(),
                 Position.values()[selectedTile.getTileId()],
-                clickedPiece
+                selectedPiece
         );
 
         // TODO: Optimize this piece of code
@@ -299,7 +289,7 @@ public class App extends Application {
         if (found) {
           Board newGameBoard = move.makeMove();
           if (newGameBoard.getOpponentPlayer().isKingInCheck()) {
-            logKingInCheckInfo(newGameBoard.getOpponentPlayer().getPlayerColor());
+            logKingInCheckInfo(newGameBoard.getOpponentPlayer());
           } else {
             Transition t = new Transition(gameBoard, newGameBoard, move);
             gameHistory.push(t);
@@ -310,33 +300,35 @@ public class App extends Application {
             }
           }
         }
-        clickedPiece = null;
+        selectedPiece = null;
       }
       Platform.runLater(() -> {
-        boolean checkMateAvoidable = gameBoard.isCheckMateAvoidable(gameBoard.getCurrentPlayer().getPlayerColor());
-        boolean staleMate = gameBoard.isInStaleMate(gameBoard.getCurrentPlayer().getPlayerColor());
-
         // Check if AI can make a move
-        if (isComputerTurn() && checkMateAvoidable && !staleMate) {
-          ArtificialIntelligenceTask task = new ArtificialIntelligenceTask();
-          new Thread(task).start(); // This is ESSENTIAL
+        if (!gameBoard.matchIsOver() && isComputerTurn()) {
+          createArtificialIntelligenceTask();
         }
 
-        // Stop the game (checkmate)
-        if (!checkMateAvoidable) {
-          String headerText = gameBoard.getOpponentPlayer().getPlayerColor() + " wins!";
-          declareEndOfMatch("End of the match!", headerText, "You can start another match.");
-        }
-
-        // Stop the game (stalemate)
-        if (staleMate) {
-          declareEndOfMatch("End of the match!", "Stalemate!", "You can start another match.");
-        }
+        checkEndOfMatch();
 
         drawBoard();
       });
     }
   };
+
+  public void checkEndOfMatch() {
+    boolean checkMateAvoidable = gameBoard.isCheckMateAvoidable(gameBoard.getCurrentPlayer());
+    boolean staleMate = gameBoard.isInStaleMate(gameBoard.getCurrentPlayer());
+    // Stop the game (checkmate)
+    if (!checkMateAvoidable) {
+      String headerText = gameBoard.getOpponentPlayer().getPlayerColor() + " wins!";
+      declareEndOfMatch("End of the match!", headerText, "You can start another match.");
+    }
+
+    // Stop the game (stalemate)
+    if (staleMate) {
+      declareEndOfMatch("End of the match!", "Stalemate!", "You can start another match.");
+    }
+  }
 
   public void declareEndOfMatch(String title, String headerText, String contentText) {
     Alert alert = new Alert(Alert.AlertType.INFORMATION);
@@ -357,6 +349,8 @@ public class App extends Application {
   }
 
   public void startNewMatch() {
+    this.selectedPiece = null;
+    this.aiTransition = null;
     this.gameHistory = new Stack<>();
     this.gameBoard = new Board(it.unisa.rookie.piece.Color.WHITE);
     drawBoard();
@@ -373,20 +367,61 @@ public class App extends Application {
     return computerColor == this.gameBoard.getCurrentPlayer().getPlayerColor();
   }
 
-  public void logBoardInfo() {
-    log.appendText("////////////////////////////////////////////////////"
-            + "\nNUMBER OF MOVES: " + gameHistory.size()
-            + "\nTURN: " + gameBoard.getCurrentPlayer().getPlayerColor()
-            + "\nIS CURRENT PLAYER KING IN CHECK: " + gameBoard.getCurrentPlayer().isKingInCheck()
-            + "\nIS OPPONENT PLAYER KING IN CHECK: " + gameBoard.getOpponentPlayer().isKingInCheck()
-            + "\nIS CURRENT PLAYER KING IN CHECKMATE: " + !(gameBoard.isCheckMateAvoidable(gameBoard.getCurrentPlayer().getPlayerColor()))
-            + "\nIS OPPONENT PLAYER KING IN CHECKMATE: " + !(gameBoard.isCheckMateAvoidable(gameBoard.getOpponentPlayer().getPlayerColor()))
-            + "\nWHITE PIECES: " + gameBoard.getWhitePieces()
-            + "\nBLACK PIECES: " + gameBoard.getBlackPieces() + "\n\n");
+  public void createArtificialIntelligenceTask() {
+    ArtificialIntelligencePlayer ai;
+
+    if (hardDifficulty.isSelected()) {
+      ai = new RandomPlayer();
+    } else if (mediumDifficulty.isSelected()) {
+      ai = new RandomPlayer();
+    } else if (easyDifficulty.isSelected()) {
+      ai = new RandomPlayer();
+    } else {
+      ai = new RandomPlayer();  // Default choice - for now
+    }
+
+    ArtificialIntelligenceTask task = new ArtificialIntelligenceTask(gameBoard, ai);
+    task.setOnSucceeded(event -> {
+      aiTransition = task.getValue();
+      gameHistory.push(aiTransition);
+      gameBoard = aiTransition.getEndBoard();
+      if (logMenuItem.isSelected()) {
+        logBoardInfo();
+      }
+
+      checkEndOfMatch();
+
+      drawBoard();
+    });
+
+    // This is ESSENTIAL
+    Thread th = new Thread(task);
+    th.setDaemon(true);
+    th.start();
   }
 
-  public void logKingInCheckInfo(it.unisa.rookie.piece.Color playerColor) {
-    log.appendText("WARNING! " + playerColor + " watch out for your king!\n");
+  public void logBoardInfo() {
+    Player curPl = gameBoard.getCurrentPlayer();
+    Player whPl = gameBoard.getWhitePlayer();
+    Player blPl = gameBoard.getBlackPlayer();
+    boolean whiteInCheck = whPl.isKingInCheck();
+    boolean whiteInCheckMate = !gameBoard.isCheckMateAvoidable(whPl);
+    boolean blackInCheck = blPl.isKingInCheck();
+    boolean blackInCheckMate = !gameBoard.isCheckMateAvoidable(blPl);
+
+    log.appendText("////////////////////////////////////////////////////"
+            + "\nMove number: " + gameHistory.size()
+            + " - Turn: " + curPl.getPlayerColor()
+            + "\nWhiteInCheck: " + whiteInCheck
+            + " - WhiteinCheckMate: " + whiteInCheckMate
+            + "\nBlackInCheck: " + blackInCheck
+            + " - BlackInCheckMate: " + blackInCheckMate
+            + "\nWhite pcs: " + gameBoard.getWhitePieces()
+            + "\nBlack pcs: " + gameBoard.getBlackPieces() + "\n\n");
+  }
+
+  public void logKingInCheckInfo(Player player) {
+    log.appendText("WARNING! " + player.getPlayerColor() + " watch out for your king!\n");
   }
 
   @Override
@@ -430,7 +465,6 @@ public class App extends Application {
     primaryStage.setTitle("Rookie");
 
     logMenuItem.setSelected(true);
-    easyDifficulty.setSelected(true);
 
     Scene game = new Scene(root, SCENE_WIDTH, SCENE_HEIGHT);
     primaryStage.setScene(game);

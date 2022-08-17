@@ -20,6 +20,13 @@ public class Move {
   private final Position destination;
   private final Piece movedPiece;
 
+  public Move() {
+    this.board = null;
+    this.source = null;
+    this.destination = null;
+    this.movedPiece = null;
+  }
+
   public Move(final Board board, final Position source, final Position destination,
               final Piece movedPiece) {
     this.board = board;
