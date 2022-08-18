@@ -2,7 +2,9 @@ package it.unisa.rookie;
 
 import it.unisa.rookie.ai.ArtificialIntelligencePlayer;
 import it.unisa.rookie.ai.ArtificialIntelligenceTask;
+import it.unisa.rookie.ai.MiniMaxPlayer;
 import it.unisa.rookie.ai.RandomPlayer;
+import it.unisa.rookie.evaluation.SimpleEvaluator;
 import it.unisa.rookie.piece.Piece;
 import it.unisa.rookie.piece.Position;
 import java.io.FileInputStream;
@@ -59,9 +61,8 @@ public class App extends Application {
   private GridPane buttonsPane;
   private VBox logPane;
   private CheckMenuItem logMenuItem;
-  private RadioMenuItem easyDifficulty;
-  private RadioMenuItem mediumDifficulty;
-  private RadioMenuItem hardDifficulty;
+  private RadioMenuItem randomPlayerItem;
+  private RadioMenuItem minimaxPlayerItem;
   private ArrayList<Tile> tiles;
   private TextArea log;
 
@@ -101,20 +102,18 @@ public class App extends Application {
     // Difficulty Menu
     final Menu difficultyMenu = new Menu("Difficulty");
 
-    easyDifficulty = new RadioMenuItem("Easy");
-    mediumDifficulty = new RadioMenuItem("Medium");
-    hardDifficulty = new RadioMenuItem("Hard");
+    randomPlayerItem = new RadioMenuItem("Random moves player");
+    minimaxPlayerItem = new RadioMenuItem("Minimax player");
 
     ToggleGroup radioGroup = new ToggleGroup();
 
-    easyDifficulty.setToggleGroup(radioGroup);
-    mediumDifficulty.setToggleGroup(radioGroup);
-    hardDifficulty.setToggleGroup(radioGroup);
+    randomPlayerItem.setToggleGroup(radioGroup);
+    minimaxPlayerItem.setToggleGroup(radioGroup);
 
     // Default value
-    easyDifficulty.setSelected(true);
+    minimaxPlayerItem.setSelected(true);
 
-    difficultyMenu.getItems().addAll(easyDifficulty, mediumDifficulty, hardDifficulty);
+    difficultyMenu.getItems().addAll(randomPlayerItem, minimaxPlayerItem);
 
     // Other Menus...
 
@@ -370,11 +369,9 @@ public class App extends Application {
   public void createArtificialIntelligenceTask() {
     ArtificialIntelligencePlayer ai;
 
-    if (hardDifficulty.isSelected()) {
-      ai = new RandomPlayer();
-    } else if (mediumDifficulty.isSelected()) {
-      ai = new RandomPlayer();
-    } else if (easyDifficulty.isSelected()) {
+    if (minimaxPlayerItem.isSelected()) {
+      ai = new MiniMaxPlayer(4, new SimpleEvaluator());
+    } else if (randomPlayerItem.isSelected()) {
       ai = new RandomPlayer();
     } else {
       ai = new RandomPlayer();  // Default choice - for now

@@ -115,6 +115,7 @@ public class Move {
   }
 
 
+  /*
   @Override
   public String toString() {
     return "Move{"
@@ -123,6 +124,16 @@ public class Move {
             + "source=" + source
             + ", destination=" + destination
             + ", movedPiece=" + movedPiece
+            + "}";
+  }
+  */
+
+  @Override
+  public String toString() {
+    return "Move{"
+            + source
+            + " to " + destination
+            + ", " + movedPiece.getType()
             + "}";
   }
 

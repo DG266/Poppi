@@ -2,14 +2,14 @@ package it.unisa.rookie.piece;
 
 public enum ChessPieceType {
 
-  // TODO: Add values
+  // TODO: Add (better?) values
 
-  PAWN(0, "Pawn", ""),
-  KNIGHT(0, "Knight", "N"),
-  BISHOP(0, "Bishop", "B"),
-  ROOK(0, "Rook", "R"),
-  QUEEN(0, "Queen", "Q"),
-  KING(0, "King", "K");
+  PAWN(1, "Pawn", ""),
+  KNIGHT(3, "Knight", "N"),
+  BISHOP(3, "Bishop", "B"),
+  ROOK(5, "Rook", "R"),
+  QUEEN(9, "Queen", "Q"),
+  KING(100, "King", "K");
 
   private final int value;
   private final String name;
