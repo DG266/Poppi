@@ -70,11 +70,13 @@ public class Board {
     ).isEmpty());
 
     this.currentPlayer = new Player(
+            this,
             currentPlayerColor,
             currentPlayerLegalMoves,
             isCurrentPlayerKingInCheck
     );
     this.opponentPlayer = new Player(
+            this,
             opponentPlayerColor,
             opponentPlayerLegalMoves,
             isOpponentPlayerKingInCheck
@@ -134,11 +136,13 @@ public class Board {
     this.blackPlayerLegalMoves = this.getLegalMoves(this.blackPieces);
 
     this.currentPlayer = new Player(
+            this,
             startingPlayerColor,
             (startingPlayerColor == Color.WHITE) ? this.whitePlayerLegalMoves : this.blackPlayerLegalMoves,
             false
     );
     this.opponentPlayer = new Player(
+            this,
             (startingPlayerColor == Color.WHITE) ? Color.BLACK : Color.WHITE,
             (startingPlayerColor == Color.WHITE) ? this.blackPlayerLegalMoves : this.whitePlayerLegalMoves,
             false

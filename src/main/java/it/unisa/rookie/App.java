@@ -1,9 +1,12 @@
 package it.unisa.rookie;
 
+import it.unisa.rookie.ai.AlphaBetaPlayer;
 import it.unisa.rookie.ai.ArtificialIntelligencePlayer;
 import it.unisa.rookie.ai.ArtificialIntelligenceTask;
 import it.unisa.rookie.ai.MiniMaxPlayer;
 import it.unisa.rookie.ai.RandomPlayer;
+import it.unisa.rookie.evaluation.Evaluator;
+import it.unisa.rookie.evaluation.LessSimpleEvaluator;
 import it.unisa.rookie.evaluation.SimpleEvaluator;
 import it.unisa.rookie.piece.Piece;
 import it.unisa.rookie.piece.Position;
@@ -30,8 +33,10 @@ import javafx.scene.control.MenuBar;
 import javafx.scene.control.MenuItem;
 import javafx.scene.control.RadioMenuItem;
 import javafx.scene.control.TextArea;
+import javafx.scene.control.TextField;
 import javafx.scene.control.ToggleGroup;
 import javafx.scene.image.Image;
+import javafx.scene.input.Mnemonic;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.Background;
 import javafx.scene.layout.BackgroundFill;
@@ -58,13 +63,20 @@ public class App extends Application {
   private BorderPane root;
   private MenuBar gameMenuBar;
   private GridPane boardPane;
-  private GridPane buttonsPane;
+  private GridPane buttonsAndFieldsPane;
   private VBox logPane;
+
   private CheckMenuItem logMenuItem;
+  private TextArea log;
+
   private RadioMenuItem randomPlayerItem;
   private RadioMenuItem minimaxPlayerItem;
+  private RadioMenuItem alphaBetaPlayerItem;
+  private RadioMenuItem simpleEvaluatorItem;
+  private RadioMenuItem lessSimpleEvaluatorItem;
+
   private ArrayList<Tile> tiles;
-  private TextArea log;
+
 
   private it.unisa.rookie.piece.Color playerColor;
 
@@ -73,6 +85,8 @@ public class App extends Application {
   private Stack<Transition> gameHistory;
 
   private Transition aiTransition;
+
+  private TextField depthTextField;
 
   private MenuBar createMenuBar() {
     // File Menu
@@ -91,34 +105,52 @@ public class App extends Application {
     logMenuItem = new CheckMenuItem("Log board description");
     logMenuItem.setOnAction((ActionEvent t) -> {
       if (logMenuItem.isSelected()) {
-        log.appendText("Logging enabled!\n");
+        log.appendText("Board logging enabled!\n");
       } else {
-        log.appendText("Logging disabled!\n");
+        log.appendText("Board logging disabled!\n");
       }
     });
 
     actionsMenu.getItems().addAll(logMenuItem);
 
-    // Difficulty Menu
-    final Menu difficultyMenu = new Menu("Difficulty");
+    // Player Type Menu
+    final Menu playerTypeMenu = new Menu("AI Player Type");
 
     randomPlayerItem = new RadioMenuItem("Random moves player");
     minimaxPlayerItem = new RadioMenuItem("Minimax player");
+    alphaBetaPlayerItem = new RadioMenuItem("Alpha Beta Pruning player");
 
-    ToggleGroup radioGroup = new ToggleGroup();
+    ToggleGroup playerRadioGroup = new ToggleGroup();
 
-    randomPlayerItem.setToggleGroup(radioGroup);
-    minimaxPlayerItem.setToggleGroup(radioGroup);
+    randomPlayerItem.setToggleGroup(playerRadioGroup);
+    minimaxPlayerItem.setToggleGroup(playerRadioGroup);
+    alphaBetaPlayerItem.setToggleGroup(playerRadioGroup);
 
     // Default value
-    minimaxPlayerItem.setSelected(true);
+    alphaBetaPlayerItem.setSelected(true);
 
-    difficultyMenu.getItems().addAll(randomPlayerItem, minimaxPlayerItem);
+    playerTypeMenu.getItems().addAll(randomPlayerItem, minimaxPlayerItem, alphaBetaPlayerItem);
+
+    // Evaluator Type Menu
+    final Menu evaluatorTypeMenu = new Menu("Evaluator Type");
+
+    simpleEvaluatorItem = new RadioMenuItem("Simple board evaluator");
+    lessSimpleEvaluatorItem = new RadioMenuItem("Less simple board evaluator");
+
+    ToggleGroup evalRadioGroup = new ToggleGroup();
+
+    simpleEvaluatorItem.setToggleGroup(evalRadioGroup);
+    lessSimpleEvaluatorItem.setToggleGroup(evalRadioGroup);
+
+    // Default value
+    simpleEvaluatorItem.setSelected(true);
+
+    evaluatorTypeMenu.getItems().addAll(simpleEvaluatorItem, lessSimpleEvaluatorItem);
 
     // Other Menus...
 
     MenuBar menuBar = new MenuBar();
-    menuBar.getMenus().addAll(fileMenu, actionsMenu, difficultyMenu);
+    menuBar.getMenus().addAll(fileMenu, actionsMenu, playerTypeMenu, evaluatorTypeMenu);
 
     return menuBar;
   }
@@ -152,7 +184,7 @@ public class App extends Application {
     return board;
   }
 
-  private GridPane createButtonsPane() {
+  private GridPane createButtonsAndFieldsPane() {
     GridPane pane = new GridPane();
 
     pane.setAlignment(Pos.CENTER);
@@ -185,6 +217,13 @@ public class App extends Application {
     pane.add(newMatchButton, 0, 0, 1, 1);
     pane.add(undoButton, 1, 0, 1, 1);
     pane.add(clearLogButton, 2, 0, 1, 1);
+
+    Label depthLabel = new Label("Depth: ");
+    this.depthTextField = new TextField();
+    this.depthTextField.setText("6");  // Default value
+
+    pane.add(depthLabel, 4, 0, 1, 1);
+    pane.add(this.depthTextField, 5, 0, 1, 1);
 
     return pane;
   }
@@ -367,10 +406,38 @@ public class App extends Application {
   }
 
   public void createArtificialIntelligenceTask() {
+    int depth = 0;
+    Evaluator ev;
     ArtificialIntelligencePlayer ai;
 
-    if (minimaxPlayerItem.isSelected()) {
-      ai = new MiniMaxPlayer(4, new SimpleEvaluator());
+    // Read user-chosen depth
+    try {
+      if (this.depthTextField != null) {
+        depth = Integer.parseInt(this.depthTextField.getText());
+      } else {
+        depth = 6;
+      }
+    } catch (NumberFormatException e) {
+      this.log.appendText("WARNING! The depth field MUST contain a number! "
+              + "Proceeding with depth = 6."
+      );
+      depth = 6;  // Default value
+    }
+
+    // Read user-chosen board evaluation
+    if (lessSimpleEvaluatorItem.isSelected()) {
+      ev = new LessSimpleEvaluator();
+    } else if (simpleEvaluatorItem.isSelected()) {
+      ev = new SimpleEvaluator();
+    } else {
+      ev = new SimpleEvaluator();
+    }
+
+    // Read user-chosen AI player type
+    if (alphaBetaPlayerItem.isSelected()) {
+      ai = new AlphaBetaPlayer(depth, ev);
+    } else if (minimaxPlayerItem.isSelected()) {
+      ai = new MiniMaxPlayer(depth, ev);
     } else if (randomPlayerItem.isSelected()) {
       ai = new RandomPlayer();
     } else {
@@ -429,14 +496,14 @@ public class App extends Application {
 
     gameMenuBar = createMenuBar();
     boardPane = createBoardPane();
-    buttonsPane = createButtonsPane();
+    buttonsAndFieldsPane = createButtonsAndFieldsPane();
     logPane = createLogPane();
 
     BorderPane console = new BorderPane();
     console.setBackground(
             new Background(new BackgroundFill(Color.WHITE, CornerRadii.EMPTY, Insets.EMPTY))
     );
-    console.setTop(buttonsPane);
+    console.setTop(buttonsAndFieldsPane);
     console.setBottom(logPane);
 
     root = new BorderPane(boardPane);
