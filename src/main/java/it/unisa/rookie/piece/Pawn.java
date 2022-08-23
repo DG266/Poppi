@@ -1,8 +1,8 @@
 package it.unisa.rookie.piece;
 
-import it.unisa.rookie.Board;
-import it.unisa.rookie.Move;
-import it.unisa.rookie.PawnPromotionMove;
+import it.unisa.rookie.board.Board;
+import it.unisa.rookie.board.Move;
+import it.unisa.rookie.board.PawnPromotionMove;
 import java.util.ArrayList;
 import java.util.Collection;
 

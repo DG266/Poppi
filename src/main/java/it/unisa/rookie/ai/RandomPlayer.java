@@ -1,9 +1,8 @@
 package it.unisa.rookie.ai;
 
-import it.unisa.rookie.Board;
-import it.unisa.rookie.Move;
-import it.unisa.rookie.Transition;
-import it.unisa.rookie.piece.Color;
+import it.unisa.rookie.board.Board;
+import it.unisa.rookie.board.Move;
+import it.unisa.rookie.board.Transition;
 import java.util.ArrayList;
 import java.util.Random;
 

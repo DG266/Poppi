@@ -1,12 +1,12 @@
-package it.unisa.rookie.evaluation;
+package it.unisa.rookie.board.evaluation;
 
-import it.unisa.rookie.Board;
+import it.unisa.rookie.board.Board;
 import it.unisa.rookie.piece.Piece;
 import java.util.ArrayList;
 
-public class SimpleEvaluator implements Evaluator {
+public class LowCostEvaluator implements Evaluator {
 
-  public SimpleEvaluator() {
+  public LowCostEvaluator() {
   }
 
   @Override

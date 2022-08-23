@@ -1,9 +1,10 @@
 package it.unisa.rookie.ai;
 
-import it.unisa.rookie.Board;
-import it.unisa.rookie.Move;
-import it.unisa.rookie.Transition;
-import it.unisa.rookie.evaluation.Evaluator;
+import it.unisa.rookie.board.Board;
+import it.unisa.rookie.board.Move;
+import it.unisa.rookie.board.ScoredMove;
+import it.unisa.rookie.board.Transition;
+import it.unisa.rookie.board.evaluation.Evaluator;
 import it.unisa.rookie.piece.Color;
 
 public class AlphaBetaPlayer implements ArtificialIntelligencePlayer {
@@ -44,12 +45,8 @@ public class AlphaBetaPlayer implements ArtificialIntelligencePlayer {
   }
 
   private ScoredMove max(Board board, int depth, int alpha, int beta) {
-    if (depth == 0) {
+    if (depth == 0 || board.matchIsOver()) {
       this.examinedBoards++;
-      return new ScoredMove(evaluator.evaluate(board), null);
-    }
-
-    if (board.matchIsOver()) {
       return new ScoredMove(evaluator.evaluate(board), null);
     }
 
@@ -75,12 +72,8 @@ public class AlphaBetaPlayer implements ArtificialIntelligencePlayer {
   }
 
   private ScoredMove min(Board board, int depth, int alpha, int beta) {
-    if (depth == 0) {
+    if (depth == 0 || board.matchIsOver()) {
       this.examinedBoards++;
-      return new ScoredMove(evaluator.evaluate(board), null);
-    }
-
-    if (board.matchIsOver()) {
       return new ScoredMove(evaluator.evaluate(board), null);
     }
 

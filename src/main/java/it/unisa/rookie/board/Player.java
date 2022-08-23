@@ -1,4 +1,4 @@
-package it.unisa.rookie;
+package it.unisa.rookie.board;
 
 import it.unisa.rookie.piece.Color;
 import it.unisa.rookie.piece.Piece;

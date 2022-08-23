@@ -1,4 +1,4 @@
-package it.unisa.rookie;
+package it.unisa.rookie.board;
 
 import it.unisa.rookie.piece.Color;
 import it.unisa.rookie.piece.Piece;
@@ -48,17 +48,17 @@ public class PawnPromotionMove extends Move {
     }
 
     // Fill the new board
-    Map<Integer, Piece> newBoardPositions = new HashMap<>(32, 1.0f);
+    Piece[] newBoardPositions = new Piece[64];
 
     for (Piece p : whitePieces) {
-      newBoardPositions.put(p.getPosition().getValue(), p);
+      newBoardPositions[p.getPosition().getValue()] = p;
     }
     for (Piece p : blackPieces) {
-      newBoardPositions.put(p.getPosition().getValue(), p);
+      newBoardPositions[p.getPosition().getValue()] = p;
     }
 
     // Add the moved piece
-    newBoardPositions.put(this.getDestination().getValue(), this.promotionPiece);
+    newBoardPositions[getDestination().getValue()] = this.promotionPiece;
 
     // Choose the next player
     Color next = (currentPlayerColor == Color.WHITE) ? Color.BLACK : Color.WHITE;

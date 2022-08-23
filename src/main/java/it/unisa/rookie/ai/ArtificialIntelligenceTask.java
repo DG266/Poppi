@@ -1,7 +1,7 @@
 package it.unisa.rookie.ai;
 
-import it.unisa.rookie.Board;
-import it.unisa.rookie.Transition;
+import it.unisa.rookie.board.Board;
+import it.unisa.rookie.board.Transition;
 import javafx.concurrent.Task;
 
 public class ArtificialIntelligenceTask extends Task<Transition> {

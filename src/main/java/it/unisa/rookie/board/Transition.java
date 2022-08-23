@@ -1,4 +1,4 @@
-package it.unisa.rookie;
+package it.unisa.rookie.board;
 
 public class Transition {
   private Board startBoard;

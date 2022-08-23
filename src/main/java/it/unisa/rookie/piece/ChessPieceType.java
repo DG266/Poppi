@@ -9,7 +9,7 @@ public enum ChessPieceType {
   BISHOP(3, "Bishop", "B"),
   ROOK(5, "Rook", "R"),
   QUEEN(9, "Queen", "Q"),
-  KING(100, "King", "K");
+  KING(200, "King", "K");
 
   private final int value;
   private final String name;

@@ -1,4 +1,4 @@
-package it.unisa.rookie;
+package it.unisa.rookie.board;
 
 import it.unisa.rookie.piece.Bishop;
 import it.unisa.rookie.piece.ChessPieceType;
@@ -75,13 +75,13 @@ public class Move {
     }
 
     // Fill the new board
-    Map<Integer, Piece> newBoardPositions = new HashMap<>(32, 1.0f);
+    Piece[] newBoardPositions = new Piece[64];
 
     for (Piece p : whitePieces) {
-      newBoardPositions.put(p.getPosition().getValue(), p);
+      newBoardPositions[p.getPosition().getValue()] = p;
     }
     for (Piece p : blackPieces) {
-      newBoardPositions.put(p.getPosition().getValue(), p);
+      newBoardPositions[p.getPosition().getValue()] = p;
     }
 
     // Add the moved piece
@@ -106,7 +106,7 @@ public class Move {
       clone.setFirstMove(false);
     }
     clone.setPosition(destination);
-    newBoardPositions.put(destination.getValue(), clone);
+    newBoardPositions[destination.getValue()] = clone;
 
     // Choose the next player
     Color next = (currentPlayerColor == Color.WHITE) ? Color.BLACK : Color.WHITE;

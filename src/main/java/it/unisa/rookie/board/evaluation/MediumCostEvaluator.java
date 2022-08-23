@@ -1,11 +1,11 @@
-package it.unisa.rookie.evaluation;
+package it.unisa.rookie.board.evaluation;
 
-import it.unisa.rookie.Board;
-import it.unisa.rookie.Move;
-import it.unisa.rookie.Player;
+import it.unisa.rookie.board.Board;
+import it.unisa.rookie.board.Move;
+import it.unisa.rookie.board.Player;
 import it.unisa.rookie.piece.Piece;
 
-public class LessSimpleEvaluator implements Evaluator {
+public class MediumCostEvaluator implements Evaluator {
   @Override
   public int evaluate(Board board) {
     return getScoreByPlayer(board.getWhitePlayer()) - getScoreByPlayer(board.getBlackPlayer());

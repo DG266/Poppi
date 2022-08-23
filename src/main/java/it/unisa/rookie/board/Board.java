@@ -1,4 +1,4 @@
-package it.unisa.rookie;
+package it.unisa.rookie.board;
 
 import it.unisa.rookie.piece.Bishop;
 import it.unisa.rookie.piece.ChessPieceType;
@@ -15,7 +15,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 public class Board {
-  private Map<Integer, Piece> boardPositions;
+  private Piece[] boardPositions;
   private Player currentPlayer;
   private Player opponentPlayer;
   private Move transition;
@@ -24,7 +24,7 @@ public class Board {
   private ArrayList<Move> whitePlayerLegalMoves;
   private ArrayList<Move> blackPlayerLegalMoves;
 
-  public Board(Map<Integer, Piece> boardPositions, Color currentPlayerColor, Move transition) {
+  public Board(Piece[] boardPositions, Color currentPlayerColor, Move transition) {
     this.boardPositions = boardPositions;
     this.transition = transition;
     Piece currentPlayerKing = null;
@@ -32,18 +32,20 @@ public class Board {
     this.whitePieces = new ArrayList<>();
     this.blackPieces = new ArrayList<>();
 
-    for (Piece p : boardPositions.values()) {
-      if (p.getColor() == Color.WHITE) {
-        whitePieces.add(p);
-      } else {
-        blackPieces.add(p);
-      }
-
-      if (p.getType() == ChessPieceType.KING) {
-        if (p.getColor() == currentPlayerColor) {
-          currentPlayerKing = p;
+    for (Piece p : boardPositions) {
+      if (p != null) {
+        if (p.getColor() == Color.WHITE) {
+          whitePieces.add(p);
         } else {
-          opponentPlayerKing = p;
+          blackPieces.add(p);
+        }
+
+        if (p.getType() == ChessPieceType.KING) {
+          if (p.getColor() == currentPlayerColor) {
+            currentPlayerKing = p;
+          } else {
+            opponentPlayerKing = p;
+          }
         }
       }
     }
@@ -85,7 +87,7 @@ public class Board {
 
   // Creates a "standard" starting board
   public Board(Color startingPlayerColor) {
-    boardPositions = new HashMap<>(32, 1.0f);
+    boardPositions = new Piece[64];
 
     this.blackPieces = new ArrayList<>();
     this.whitePieces = new ArrayList<>();
@@ -149,11 +151,11 @@ public class Board {
     );
   }
 
-  public Map<Integer, Piece> getBoardPositions() {
+  public Piece[] getBoardPositions() {
     return boardPositions;
   }
 
-  public void setBoardPositions(Map<Integer, Piece> boardPositions) {
+  public void setBoardPositions(Piece[] boardPositions) {
     this.boardPositions = boardPositions;
   }
 
@@ -221,15 +223,11 @@ public class Board {
   }
 
   public void putPiece(Piece p) {
-    this.boardPositions.put(p.getPosition().getValue(), p);
+    this.boardPositions[p.getPosition().getValue()] = p;
   }
 
-  public void removePiece(Integer pos) {
-    boardPositions.remove(pos);
-  }
-
-  public Piece getPiece(Integer pos) {
-    return this.boardPositions.get(pos);
+  public Piece getPiece(int pos) {
+    return this.boardPositions[pos];
   }
 
   private ArrayList<Move> getLegalMoves(ArrayList<Piece> pieces) {

@@ -1,6 +1,4 @@
-package it.unisa.rookie.ai;
-
-import it.unisa.rookie.Move;
+package it.unisa.rookie.board;
 
 public class ScoredMove {
   private int score;

@@ -1,13 +1,19 @@
-package it.unisa.rookie;
+package it.unisa.rookie.gui;
 
 import it.unisa.rookie.ai.AlphaBetaPlayer;
 import it.unisa.rookie.ai.ArtificialIntelligencePlayer;
 import it.unisa.rookie.ai.ArtificialIntelligenceTask;
 import it.unisa.rookie.ai.MiniMaxPlayer;
+import it.unisa.rookie.ai.RandomAlphaBetaPlayer;
 import it.unisa.rookie.ai.RandomPlayer;
-import it.unisa.rookie.evaluation.Evaluator;
-import it.unisa.rookie.evaluation.LessSimpleEvaluator;
-import it.unisa.rookie.evaluation.SimpleEvaluator;
+import it.unisa.rookie.board.Board;
+import it.unisa.rookie.board.Move;
+import it.unisa.rookie.board.Player;
+import it.unisa.rookie.board.Transition;
+import it.unisa.rookie.board.evaluation.Evaluator;
+import it.unisa.rookie.board.evaluation.HighCostEvaluator;
+import it.unisa.rookie.board.evaluation.LowCostEvaluator;
+import it.unisa.rookie.board.evaluation.MediumCostEvaluator;
 import it.unisa.rookie.piece.Piece;
 import it.unisa.rookie.piece.Position;
 import java.io.FileInputStream;
@@ -36,7 +42,6 @@ import javafx.scene.control.TextArea;
 import javafx.scene.control.TextField;
 import javafx.scene.control.ToggleGroup;
 import javafx.scene.image.Image;
-import javafx.scene.input.Mnemonic;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.Background;
 import javafx.scene.layout.BackgroundFill;
@@ -72,8 +77,10 @@ public class App extends Application {
   private RadioMenuItem randomPlayerItem;
   private RadioMenuItem minimaxPlayerItem;
   private RadioMenuItem alphaBetaPlayerItem;
-  private RadioMenuItem simpleEvaluatorItem;
-  private RadioMenuItem lessSimpleEvaluatorItem;
+  private RadioMenuItem randomAlphaBetaPlayerItem;
+  private RadioMenuItem lowCostEvItem;
+  private RadioMenuItem medCostEvItem;
+  private RadioMenuItem highCostEvItem;
 
   private ArrayList<Tile> tiles;
 
@@ -119,33 +126,42 @@ public class App extends Application {
     randomPlayerItem = new RadioMenuItem("Random moves player");
     minimaxPlayerItem = new RadioMenuItem("Minimax player");
     alphaBetaPlayerItem = new RadioMenuItem("Alpha Beta Pruning player");
+    randomAlphaBetaPlayerItem = new RadioMenuItem("Random Alpha Beta Pruning player");
 
     ToggleGroup playerRadioGroup = new ToggleGroup();
 
     randomPlayerItem.setToggleGroup(playerRadioGroup);
     minimaxPlayerItem.setToggleGroup(playerRadioGroup);
     alphaBetaPlayerItem.setToggleGroup(playerRadioGroup);
+    randomAlphaBetaPlayerItem.setToggleGroup(playerRadioGroup);
 
     // Default value
     alphaBetaPlayerItem.setSelected(true);
 
-    playerTypeMenu.getItems().addAll(randomPlayerItem, minimaxPlayerItem, alphaBetaPlayerItem);
+    playerTypeMenu.getItems().addAll(
+            randomPlayerItem,
+            minimaxPlayerItem,
+            alphaBetaPlayerItem,
+            randomAlphaBetaPlayerItem
+    );
 
     // Evaluator Type Menu
     final Menu evaluatorTypeMenu = new Menu("Evaluator Type");
 
-    simpleEvaluatorItem = new RadioMenuItem("Simple board evaluator");
-    lessSimpleEvaluatorItem = new RadioMenuItem("Less simple board evaluator");
+    lowCostEvItem = new RadioMenuItem("Low cost evaluator");
+    medCostEvItem = new RadioMenuItem("Medium cost evaluator");
+    highCostEvItem = new RadioMenuItem("High cost evaluator");
 
     ToggleGroup evalRadioGroup = new ToggleGroup();
 
-    simpleEvaluatorItem.setToggleGroup(evalRadioGroup);
-    lessSimpleEvaluatorItem.setToggleGroup(evalRadioGroup);
+    lowCostEvItem.setToggleGroup(evalRadioGroup);
+    medCostEvItem.setToggleGroup(evalRadioGroup);
+    highCostEvItem.setToggleGroup(evalRadioGroup);
 
     // Default value
-    simpleEvaluatorItem.setSelected(true);
+    highCostEvItem.setSelected(true);
 
-    evaluatorTypeMenu.getItems().addAll(simpleEvaluatorItem, lessSimpleEvaluatorItem);
+    evaluatorTypeMenu.getItems().addAll(lowCostEvItem, medCostEvItem, highCostEvItem);
 
     // Other Menus...
 
@@ -425,16 +441,20 @@ public class App extends Application {
     }
 
     // Read user-chosen board evaluation
-    if (lessSimpleEvaluatorItem.isSelected()) {
-      ev = new LessSimpleEvaluator();
-    } else if (simpleEvaluatorItem.isSelected()) {
-      ev = new SimpleEvaluator();
+    if (highCostEvItem.isSelected()) {
+      ev = new HighCostEvaluator();
+    } else if (medCostEvItem.isSelected()) {
+      ev = new MediumCostEvaluator();
+    } else if (lowCostEvItem.isSelected()) {
+      ev = new LowCostEvaluator();
     } else {
-      ev = new SimpleEvaluator();
+      ev = new LowCostEvaluator();
     }
 
     // Read user-chosen AI player type
-    if (alphaBetaPlayerItem.isSelected()) {
+    if (randomAlphaBetaPlayerItem.isSelected()) {
+      ai = new RandomAlphaBetaPlayer(depth, ev);
+    } else if (alphaBetaPlayerItem.isSelected()) {
       ai = new AlphaBetaPlayer(depth, ev);
     } else if (minimaxPlayerItem.isSelected()) {
       ai = new MiniMaxPlayer(depth, ev);
