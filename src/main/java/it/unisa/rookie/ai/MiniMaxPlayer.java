@@ -25,11 +25,19 @@ public class MiniMaxPlayer implements ArtificialIntelligencePlayer {
 
     if (startingBoard.getCurrentPlayer().getPlayerColor() == Color.WHITE) {
       // White starts as maximizing player
-      System.out.println("White player AI starting... (depth = " + this.depth + ")");
+      System.out.println("White player AI starting... "
+              + "(algorithm = MiniMax) "
+              + "(depth = " + this.depth + ") "
+              + "(evaluator = " + this.evaluator + ")"
+      );
       result = max(startingBoard, depth);
     } else {
       // Black starts as minimizing player
-      System.out.println("Black player AI starting... (depth = " + this.depth + ")");
+      System.out.println("Black player AI starting... "
+              + "(algorithm = MiniMax) "
+              + "(depth = " + this.depth + ") "
+              + "(evaluator = " + this.evaluator + ")"
+      );
       result = min(startingBoard, depth);
     }
 

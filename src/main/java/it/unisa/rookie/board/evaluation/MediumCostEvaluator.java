@@ -45,4 +45,9 @@ public class MediumCostEvaluator implements Evaluator {
     }
     return pieceValueScore;
   }
+
+  @Override
+  public String toString() {
+    return "MediumCostEvaluator{}";
+  }
 }

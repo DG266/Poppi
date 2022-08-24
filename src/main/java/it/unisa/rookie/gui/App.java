@@ -22,6 +22,8 @@ import java.util.Optional;
 import java.util.Stack;
 import javafx.application.Application;
 import javafx.application.Platform;
+import javafx.concurrent.Service;
+import javafx.concurrent.Task;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
 import javafx.geometry.Insets;
@@ -31,6 +33,7 @@ import javafx.scene.control.Alert;
 import javafx.scene.control.Button;
 import javafx.scene.control.ButtonBar;
 import javafx.scene.control.ButtonType;
+import javafx.scene.control.CheckBox;
 import javafx.scene.control.CheckMenuItem;
 import javafx.scene.control.Label;
 import javafx.scene.control.Menu;
@@ -83,8 +86,10 @@ public class App extends Application {
 
   private ArrayList<Tile> tiles;
 
-
-  private it.unisa.rookie.piece.Color playerColor;
+  private boolean isWhiteAi;
+  private boolean isBlackAi;
+  private CheckBox isWhiteAiCheckBox;
+  private CheckBox isBlackAiCheckBox;
 
   private Piece selectedPiece;
 
@@ -116,6 +121,8 @@ public class App extends Application {
         log.appendText("Board logging disabled!\n");
       }
     });
+
+    logMenuItem.setSelected(true);
 
     actionsMenu.getItems().addAll(logMenuItem);
 
@@ -240,6 +247,38 @@ public class App extends Application {
     pane.add(depthLabel, 4, 0, 1, 1);
     pane.add(this.depthTextField, 5, 0, 1, 1);
 
+    this.isWhiteAiCheckBox = new CheckBox("White AI Controlled");
+    this.isBlackAiCheckBox = new CheckBox("Black AI Controlled");
+
+    this.isWhiteAiCheckBox.setOnAction((ActionEvent t) -> {
+      if (this.isWhiteAiCheckBox.isSelected()) {
+        this.isWhiteAi = true;
+        if (gameBoard.getCurrentPlayer().getPlayerColor() == it.unisa.rookie.piece.Color.WHITE) {
+          letComputerPlayIfPossible();
+        }
+      } else {
+        this.isWhiteAi = false;
+      }
+    });
+
+    this.isBlackAiCheckBox.setOnAction((ActionEvent t) -> {
+      if (this.isBlackAiCheckBox.isSelected()) {
+        this.isBlackAi = true;
+        if (gameBoard.getCurrentPlayer().getPlayerColor() == it.unisa.rookie.piece.Color.BLACK) {
+          letComputerPlayIfPossible();
+        }
+      } else {
+        this.isBlackAi = false;
+      }
+    });
+
+    // Default values
+    this.isWhiteAiCheckBox.setSelected(false);
+    this.isBlackAiCheckBox.setSelected(false);
+
+    pane.add(this.isWhiteAiCheckBox, 0, 1, 3, 2);
+    pane.add(this.isBlackAiCheckBox, 3, 1, 3, 2);
+
     return pane;
   }
 
@@ -318,7 +357,7 @@ public class App extends Application {
       if (selectedPiece == null
               && clicked != null
               && currentPlayer.getPlayerColor() == clicked.getColor()
-              && isPlayerTurn()) {
+      ) {
           selectedPiece = gameBoard.getPiece(selectedTile.getTileId());
       } else if (selectedPiece != null) {
         Move move = new Move(
@@ -356,69 +395,12 @@ public class App extends Application {
         selectedPiece = null;
       }
       Platform.runLater(() -> {
-        // Check if AI can make a move
-        if (!gameBoard.matchIsOver() && isComputerTurn()) {
-          createArtificialIntelligenceTask();
-        }
-
+        letComputerPlayIfPossible();
         checkEndOfMatch();
-
         drawBoard();
       });
     }
   };
-
-  public void checkEndOfMatch() {
-    boolean checkMateAvoidable = gameBoard.isCheckMateAvoidable(gameBoard.getCurrentPlayer());
-    boolean staleMate = gameBoard.isInStaleMate(gameBoard.getCurrentPlayer());
-    // Stop the game (checkmate)
-    if (!checkMateAvoidable) {
-      String headerText = gameBoard.getOpponentPlayer().getPlayerColor() + " wins!";
-      declareEndOfMatch("End of the match!", headerText, "You can start another match.");
-    }
-
-    // Stop the game (stalemate)
-    if (staleMate) {
-      declareEndOfMatch("End of the match!", "Stalemate!", "You can start another match.");
-    }
-  }
-
-  public void declareEndOfMatch(String title, String headerText, String contentText) {
-    Alert alert = new Alert(Alert.AlertType.INFORMATION);
-    alert.setTitle(title);
-    alert.setHeaderText(headerText);
-    alert.setContentText(contentText);
-
-    ButtonType newMatchButton = new ButtonType("Start a new match");
-    ButtonType cancelButton = new ButtonType("Cancel", ButtonBar.ButtonData.CANCEL_CLOSE);
-    alert.getButtonTypes().setAll(newMatchButton, cancelButton);
-
-    Optional<ButtonType> result = alert.showAndWait();
-    if (result.get() == newMatchButton) {
-      startNewMatch();
-    } else {
-      // Do nothing
-    }
-  }
-
-  public void startNewMatch() {
-    this.selectedPiece = null;
-    this.aiTransition = null;
-    this.gameHistory = new Stack<>();
-    this.gameBoard = new Board(it.unisa.rookie.piece.Color.WHITE);
-    drawBoard();
-  }
-
-  public boolean isPlayerTurn() {
-    return this.playerColor == this.gameBoard.getCurrentPlayer().getPlayerColor();
-  }
-
-  public boolean isComputerTurn() {
-    it.unisa.rookie.piece.Color white = it.unisa.rookie.piece.Color.WHITE;
-    it.unisa.rookie.piece.Color black = it.unisa.rookie.piece.Color.BLACK;
-    it.unisa.rookie.piece.Color computerColor = this.playerColor ==  white ? black : white;
-    return computerColor == this.gameBoard.getCurrentPlayer().getPlayerColor();
-  }
 
   public void createArtificialIntelligenceTask() {
     int depth = 0;
@@ -434,7 +416,7 @@ public class App extends Application {
       }
     } catch (NumberFormatException e) {
       this.log.appendText("WARNING! The depth field MUST contain a number! "
-              + "Proceeding with depth = 6."
+              + "Proceeding with depth = 6.\n"
       );
       depth = 6;  // Default value
     }
@@ -472,8 +454,8 @@ public class App extends Application {
         logBoardInfo();
       }
 
+      letComputerPlayIfPossible();
       checkEndOfMatch();
-
       drawBoard();
     });
 
@@ -481,6 +463,74 @@ public class App extends Application {
     Thread th = new Thread(task);
     th.setDaemon(true);
     th.start();
+  }
+
+  public void letComputerPlayIfPossible() {
+    if (!gameBoard.matchIsOver() && isComputerTurn()) {
+
+      if (gameBoard.getCurrentPlayer().getPlayerColor() == it.unisa.rookie.piece.Color.WHITE) {
+        this.isWhiteAiCheckBox.setDisable(true);
+        this.isBlackAiCheckBox.setDisable(false);
+      } else {
+        this.isWhiteAiCheckBox.setDisable(false);
+        this.isBlackAiCheckBox.setDisable(true);
+      }
+      createArtificialIntelligenceTask();
+    }
+  }
+
+  public void checkEndOfMatch() {
+    boolean checkMateAvoidable = gameBoard.isCheckMateAvoidable(gameBoard.getCurrentPlayer());
+    boolean staleMate = gameBoard.isInStaleMate(gameBoard.getCurrentPlayer());
+
+    // Stop the game (checkmate)
+    if (!checkMateAvoidable) {
+      String headerText = gameBoard.getOpponentPlayer().getPlayerColor() + " wins!";
+      declareEndOfMatch("End of the match!", headerText, "You can start another match.");
+    }
+
+    // Stop the game (stalemate)
+    if (staleMate) {
+      declareEndOfMatch("End of the match!", "Stalemate!", "You can start another match.");
+    }
+  }
+
+  public void declareEndOfMatch(String title, String headerText, String contentText) {
+    Alert alert = new Alert(Alert.AlertType.INFORMATION);
+    alert.setTitle(title);
+    alert.setHeaderText(headerText);
+    alert.setContentText(contentText);
+
+    ButtonType newMatchButton = new ButtonType("Start a new match");
+    ButtonType cancelButton = new ButtonType("Cancel", ButtonBar.ButtonData.CANCEL_CLOSE);
+    alert.getButtonTypes().setAll(newMatchButton, cancelButton);
+
+    Optional<ButtonType> result = alert.showAndWait();
+    if (result.get() == newMatchButton) {
+      startNewMatch();
+    } else {
+      // Do nothing
+    }
+  }
+
+  public void startNewMatch() {
+    this.selectedPiece = null;
+    this.aiTransition = null;
+    this.gameHistory = new Stack<>();
+    this.gameBoard = new Board(it.unisa.rookie.piece.Color.WHITE);
+
+    this.isWhiteAiCheckBox.setDisable(false);
+    this.isBlackAiCheckBox.setDisable(false);
+
+    drawBoard();
+  }
+
+  public boolean isComputerTurn() {
+    if (gameBoard.getCurrentPlayer().getPlayerColor() == it.unisa.rookie.piece.Color.WHITE) {
+      return this.isWhiteAi;
+    } else {
+      return this.isBlackAi;
+    }
   }
 
   public void logBoardInfo() {
@@ -496,7 +546,7 @@ public class App extends Application {
             + "\nMove number: " + gameHistory.size()
             + " - Turn: " + curPl.getPlayerColor()
             + "\nWhiteInCheck: " + whiteInCheck
-            + " - WhiteinCheckMate: " + whiteInCheckMate
+            + " - WhiteInCheckMate: " + whiteInCheckMate
             + "\nBlackInCheck: " + blackInCheck
             + " - BlackInCheckMate: " + blackInCheckMate
             + "\nWhite pcs: " + gameBoard.getWhitePieces()
@@ -510,8 +560,14 @@ public class App extends Application {
   @Override
   public void start(Stage primaryStage) {
     this.gameHistory = new Stack<>();
-    this.playerColor = it.unisa.rookie.piece.Color.WHITE;
-    this.gameBoard = new Board(this.playerColor);
+
+    it.unisa.rookie.piece.Color startingPlayerColor = it.unisa.rookie.piece.Color.WHITE;
+
+    // Two human players - default
+    this.isWhiteAi = false;
+    this.isBlackAi = false;
+
+    this.gameBoard = new Board(startingPlayerColor);
 
     gameMenuBar = createMenuBar();
     boardPane = createBoardPane();
@@ -542,8 +598,6 @@ public class App extends Application {
     primaryStage.getIcons().add(icon);
 
     primaryStage.setTitle("Rookie");
-
-    logMenuItem.setSelected(true);
 
     Scene game = new Scene(root, SCENE_WIDTH, SCENE_HEIGHT);
     primaryStage.setScene(game);

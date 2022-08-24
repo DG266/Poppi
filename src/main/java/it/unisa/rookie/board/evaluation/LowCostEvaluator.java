@@ -27,4 +27,8 @@ public class LowCostEvaluator implements Evaluator {
     return whiteScore - blackScore;
   }
 
+  @Override
+  public String toString() {
+    return "LowCostEvaluator{}";
+  }
 }

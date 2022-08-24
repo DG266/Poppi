@@ -49,4 +49,9 @@ public class HighCostEvaluator implements Evaluator {
   private int mobility(Player player) {
     return player.getLegalMoves().size();
   }
+
+  @Override
+  public String toString() {
+    return "HighCostEvaluator{}";
+  }
 }
