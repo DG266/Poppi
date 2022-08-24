@@ -16,8 +16,7 @@ import it.unisa.rookie.board.evaluation.LowCostEvaluator;
 import it.unisa.rookie.board.evaluation.MediumCostEvaluator;
 import it.unisa.rookie.piece.Piece;
 import it.unisa.rookie.piece.Position;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
+import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Optional;
 import java.util.Stack;
@@ -536,12 +535,8 @@ public class App extends Application {
     boardPane.setAlignment(Pos.CENTER);
 
     // Load application icon
-    FileInputStream input = null;
-    try {
-      input = new FileInputStream("pics/BlackRook.png");
-    } catch (FileNotFoundException e) {
-      e.printStackTrace();
-    }
+    InputStream input = this.getClass().getResourceAsStream("/pics/BlackRook.png");
+
     Image icon = new Image(input);
 
     primaryStage.getIcons().add(icon);

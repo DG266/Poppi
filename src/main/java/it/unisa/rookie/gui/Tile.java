@@ -3,8 +3,7 @@ package it.unisa.rookie.gui;
 import it.unisa.rookie.board.Board;
 import it.unisa.rookie.board.Move;
 import it.unisa.rookie.piece.Piece;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
+import java.io.InputStream;
 import java.util.ArrayList;
 import javafx.geometry.Insets;
 import javafx.scene.control.ContentDisplay;
@@ -74,15 +73,11 @@ public class Tile extends StackPane {
 
   public void addPieceIcon() {
     Piece p = this.gameBoard.getPiece(this.tileId);
-    if (p != null) {
-      String imagePath = "./pics/" + p.getColor().toString() + p.getType().getName() + ".png";
 
-      FileInputStream input = null;
-      try {
-        input = new FileInputStream(imagePath);
-      } catch (FileNotFoundException e) {
-        e.printStackTrace();
-      }
+    if (p != null) {
+      String imagePath = "/pics/" + p.getColor().toString() + p.getType().getName() + ".png";
+
+      InputStream input = this.getClass().getResourceAsStream(imagePath);
       ImageView image = new ImageView(new Image(input));
 
       image.setFitHeight(46);
