@@ -4,12 +4,13 @@ public enum ChessPieceType {
 
   // TODO: Add (better?) values
 
-  PAWN(1, "Pawn", ""),
-  KNIGHT(3, "Knight", "N"),
-  BISHOP(3, "Bishop", "B"),
-  ROOK(5, "Rook", "R"),
-  QUEEN(9, "Queen", "Q"),
-  KING(200, "King", "K");
+  // Values in "centipawns"
+  PAWN(100, "Pawn", ""),
+  KNIGHT(320, "Knight", "N"),
+  BISHOP(330, "Bishop", "B"),
+  ROOK(500, "Rook", "R"),
+  QUEEN(900, "Queen", "Q"),
+  KING(20000, "King", "K");
 
   private final int value;
   private final String name;

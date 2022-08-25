@@ -11,24 +11,20 @@ import it.unisa.rookie.piece.Position;
 import it.unisa.rookie.piece.Queen;
 import it.unisa.rookie.piece.Rook;
 import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Map;
 
 public class Board {
   private Piece[] boardPositions;
+  private Move generatorMove;
   private Player currentPlayer;
   private Player opponentPlayer;
-  private Move transition;
+  private King currentPlayerKing;
+  private King opponentPlayerKing;
   private ArrayList<Piece> whitePieces;
   private ArrayList<Piece> blackPieces;
-  private ArrayList<Move> whitePlayerLegalMoves;
-  private ArrayList<Move> blackPlayerLegalMoves;
 
   public Board(Piece[] boardPositions, Color currentPlayerColor, Move transition) {
     this.boardPositions = boardPositions;
-    this.transition = transition;
-    Piece currentPlayerKing = null;
-    Piece opponentPlayerKing = null;
+    this.generatorMove = transition;
     this.whitePieces = new ArrayList<>();
     this.blackPieces = new ArrayList<>();
 
@@ -42,47 +38,52 @@ public class Board {
 
         if (p.getType() == ChessPieceType.KING) {
           if (p.getColor() == currentPlayerColor) {
-            currentPlayerKing = p;
+            this.currentPlayerKing = (King) p;
           } else {
-            opponentPlayerKing = p;
+            this.opponentPlayerKing = (King) p;
           }
         }
       }
     }
 
-    this.whitePlayerLegalMoves = this.getLegalMoves(this.whitePieces);
-    this.blackPlayerLegalMoves = this.getLegalMoves(this.blackPieces);
-
     // Current player / Opponent player creation
     Color opponentPlayerColor = (currentPlayerColor == Color.WHITE) ? Color.BLACK : Color.WHITE;
-    ArrayList<Move> currentPlayerLegalMoves =
-            (currentPlayerColor == Color.WHITE) ? whitePlayerLegalMoves : blackPlayerLegalMoves;
-    ArrayList<Move> opponentPlayerLegalMoves =
-            (currentPlayerColor == Color.WHITE) ? blackPlayerLegalMoves : whitePlayerLegalMoves;
+    ArrayList<Move> currentPlayerLegalMoves = (currentPlayerColor == Color.WHITE)
+            ? getLegalMoves(this.whitePieces)
+            : this.getLegalMoves(this.blackPieces);
+    ArrayList<Move> opponentPlayerLegalMoves = (currentPlayerColor == Color.WHITE)
+            ? this.getLegalMoves(this.blackPieces)
+            : getLegalMoves(this.whitePieces);
 
-
-    boolean isCurrentPlayerKingInCheck = !(getThreats(
+    ArrayList<Move> currentPlayerThreats = getThreats(
             currentPlayerKing.getPosition().getValue(),
             opponentPlayerLegalMoves
-    ).isEmpty());
+    );
 
-    boolean isOpponentPlayerKingInCheck = !(getThreats(
+    ArrayList<Move> opponentPlayerThreats = getThreats(
             opponentPlayerKing.getPosition().getValue(),
             currentPlayerLegalMoves
-    ).isEmpty());
+    );
+
 
     this.currentPlayer = new Player(
             this,
             currentPlayerColor,
             currentPlayerLegalMoves,
-            isCurrentPlayerKingInCheck
+            !(currentPlayerThreats.isEmpty())
     );
     this.opponentPlayer = new Player(
             this,
             opponentPlayerColor,
             opponentPlayerLegalMoves,
-            isOpponentPlayerKingInCheck
+            !(opponentPlayerThreats.isEmpty())
     );
+
+    currentPlayerLegalMoves.addAll(currentPlayerKing.getCastlingMoves(this));
+    opponentPlayerLegalMoves.addAll(opponentPlayerKing.getCastlingMoves(this));
+
+    currentPlayer.setLegalMoves(currentPlayerLegalMoves);
+    opponentPlayer.setLegalMoves(opponentPlayerLegalMoves);
   }
 
   // Creates a "standard" starting board
@@ -134,19 +135,20 @@ public class Board {
       putPiece(p);
     }
 
-    this.whitePlayerLegalMoves = this.getLegalMoves(this.whitePieces);
-    this.blackPlayerLegalMoves = this.getLegalMoves(this.blackPieces);
-
     this.currentPlayer = new Player(
             this,
             startingPlayerColor,
-            (startingPlayerColor == Color.WHITE) ? this.whitePlayerLegalMoves : this.blackPlayerLegalMoves,
+            (startingPlayerColor == Color.WHITE)
+                    ? getLegalMoves(this.whitePieces)
+                    : getLegalMoves(this.blackPieces),
             false
     );
     this.opponentPlayer = new Player(
             this,
             (startingPlayerColor == Color.WHITE) ? Color.BLACK : Color.WHITE,
-            (startingPlayerColor == Color.WHITE) ? this.blackPlayerLegalMoves : this.whitePlayerLegalMoves,
+            (startingPlayerColor == Color.WHITE)
+                    ? getLegalMoves(this.blackPieces)
+                    : getLegalMoves(this.whitePieces),
             false
     );
   }
@@ -175,12 +177,12 @@ public class Board {
     this.opponentPlayer = opponentPlayer;
   }
 
-  public Move getTransition() {
-    return transition;
+  public Move getGeneratorMove() {
+    return generatorMove;
   }
 
-  public void setTransition(Move transition) {
-    this.transition = transition;
+  public void setGeneratorMove(Move generatorMove) {
+    this.generatorMove = generatorMove;
   }
 
   public ArrayList<Piece> getWhitePieces() {
@@ -199,28 +201,26 @@ public class Board {
     this.blackPieces = blackPieces;
   }
 
-  public ArrayList<Move> getWhitePlayerLegalMoves() {
-    return whitePlayerLegalMoves;
-  }
-
-  public void setWhitePlayerLegalMoves(ArrayList<Move> whitePlayerLegalMoves) {
-    this.whitePlayerLegalMoves = whitePlayerLegalMoves;
-  }
-
-  public ArrayList<Move> getBlackPlayerLegalMoves() {
-    return blackPlayerLegalMoves;
-  }
-
-  public void setBlackPlayerLegalMoves(ArrayList<Move> blackPlayerLegalMoves) {
-    this.blackPlayerLegalMoves = blackPlayerLegalMoves;
-  }
-
   public ArrayList<Move> getAllPossibleLegalMoves() {
     ArrayList<Move> moves = new ArrayList<>();
-    moves.addAll(this.whitePlayerLegalMoves);
-    moves.addAll(this.blackPlayerLegalMoves);
+    moves.addAll(currentPlayer.getLegalMoves());
+    moves.addAll(opponentPlayer.getLegalMoves());
     return moves;
   }
+
+  public ArrayList<Move> getLegalMovesByPiece(Piece p) {
+    ArrayList<Move> moves = new ArrayList<>();
+    ArrayList<Move> legals = p.getColor() == Color.WHITE
+            ? this.getWhitePlayer().getLegalMoves()
+            : this.getBlackPlayer().getLegalMoves();
+    for (Move m : legals) {
+      if (m.getMovedPiece().equals(p)) {
+        moves.add(m);
+      }
+    }
+    return moves;
+  }
+
 
   public void putPiece(Piece p) {
     this.boardPositions[p.getPosition().getValue()] = p;
@@ -239,7 +239,7 @@ public class Board {
     return legalMoves;
   }
 
-  private ArrayList<Move> getThreats(int tile, ArrayList<Move> candidateThreats) {
+  public ArrayList<Move> getThreats(int tile, ArrayList<Move> candidateThreats) {
     ArrayList<Move> result = new ArrayList<>();
     for (Move threat : candidateThreats) {
       if (threat.getDestination().getValue() == tile) {
@@ -299,13 +299,25 @@ public class Board {
             : this.getOpponentPlayer();
   }
 
+  /*
+  public King getWhitePlayerKing() {
+    return this.currentPlayerKing.getColor() == Color.WHITE
+            ? this.currentPlayerKing
+            : this.opponentPlayerKing;
+  }
+
+  public King getBlackPlayerKing() {
+    return this.currentPlayerKing.getColor() == Color.BLACK
+            ? this.currentPlayerKing
+            : this.opponentPlayerKing;
+  }
+  */
+
   @Override
   public String toString() {
     return "Board{"
             + "boardPositions=" + boardPositions
             + ", currentPlayer=" + currentPlayer
-            + ", whitePlayerLegalMoves=" + whitePlayerLegalMoves
-            + ", blackPlayerLegalMoves=" + blackPlayerLegalMoves
             + ", whitePieces=" + whitePieces
             + ", blackPieces=" + blackPieces
             + "}";

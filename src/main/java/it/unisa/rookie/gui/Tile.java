@@ -111,7 +111,8 @@ public class Tile extends StackPane {
 
   public void drawLegalMove(Piece selectedPiece) {
     if (selectedPiece != null) {
-      ArrayList<Move> legalMoves = (ArrayList<Move>) selectedPiece.getLegalMoves(this.gameBoard);
+      //ArrayList<Move> legalMoves = (ArrayList<Move>) selectedPiece.getLegalMoves(this.gameBoard);
+      ArrayList<Move> legalMoves = gameBoard.getLegalMovesByPiece(selectedPiece);
       for (Move m : legalMoves) {
         if (m.getDestination().getValue() == this.tileId) {
           Circle c = new Circle();
