@@ -50,6 +50,9 @@ public class CastlingMove extends Move {
     ArrayList<Piece> whitePieces = new ArrayList<>(this.getBoard().getWhitePieces());
     ArrayList<Piece> blackPieces = new ArrayList<>(this.getBoard().getBlackPieces());
 
+    int whiteScore = this.getBoard().getWhitePlayer().getMaterialCount();
+    int blackScore = this.getBoard().getBlackPlayer().getMaterialCount();
+
     Color currentPlayerColor = this.getBoard().getCurrentPlayer().getPlayerColor();
 
     if (currentPlayerColor == Color.WHITE) {
@@ -99,7 +102,7 @@ public class CastlingMove extends Move {
     // Choose the next player
     Color next = (currentPlayerColor == Color.WHITE) ? Color.BLACK : Color.WHITE;
 
-    return new Board(newBoardPositions, next, this);
+    return new Board(newBoardPositions, this, next, whiteScore, blackScore);
   }
 
   @Override

@@ -8,16 +8,23 @@ public class Player {
   private Board playingBoard;
   private Color playerColor;
   private ArrayList<Move> legalMoves;
+  private ArrayList<Move> kingThreats;
+  private int materialCount;
+
   private boolean isKingInCheck;
 
   public Player(Board playingBoard,
                 Color playerColor,
                 ArrayList<Move> legalMoves,
-                boolean isKingInCheck) {
+                ArrayList<Move> kingThreats,
+                int materialCount) {
     this.playingBoard = playingBoard;
     this.playerColor = playerColor;
     this.legalMoves = legalMoves;
-    this.isKingInCheck = isKingInCheck;
+    this.kingThreats = kingThreats;
+    this.materialCount = materialCount;
+
+    this.isKingInCheck = !(this.kingThreats.isEmpty());
   }
 
   public Board getPlayingBoard() {
@@ -44,12 +51,24 @@ public class Player {
     this.legalMoves = legalMoves;
   }
 
-  public boolean isKingInCheck() {
-    return isKingInCheck;
+  public ArrayList<Move> getKingThreats() {
+    return kingThreats;
   }
 
-  public void setKingInCheck(boolean kingInCheck) {
-    isKingInCheck = kingInCheck;
+  public void setKingThreats(ArrayList<Move> kingThreats) {
+    this.kingThreats = kingThreats;
+  }
+
+  public int getMaterialCount() {
+    return materialCount;
+  }
+
+  public void setMaterialCount(int materialCount) {
+    this.materialCount = materialCount;
+  }
+
+  public boolean isKingInCheck() {
+    return this.isKingInCheck;
   }
 
   public Player getOpponentPlayer() {

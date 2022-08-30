@@ -14,10 +14,26 @@ public class HighCostEvaluator implements Evaluator {
 
   private int getScoreByPlayer(Player player) {
     // TODO: add some weights (maybe)
-    return availableGoodAttacks(player)
-            + pieceValueCount(player)
+    return player.getMaterialCount()
             + mobility(player)
-            + castlingEvaluation(player);
+            + availableGoodAttacks(player)
+            + castlingEvaluation(player)
+            + kingInCheckBonus(player);
+  }
+
+  /*
+  private int pieceValueCount(Player player) {
+    int pieceValueScore = 0;
+
+    for (Piece p : player.getPieces()) {
+      pieceValueScore += p.getType().getValue();
+    }
+    return pieceValueScore;
+  }
+  */
+
+  private int mobility(Player player) {
+    return player.getLegalMoves().size();
   }
 
   private int availableGoodAttacks(Player player) {
@@ -41,24 +57,16 @@ public class HighCostEvaluator implements Evaluator {
     return attackBonus;
   }
 
-  private int pieceValueCount(Player player) {
-    int pieceValueScore = 0;
-
-    for (Piece p : player.getPieces()) {
-      pieceValueScore += p.getType().getValue();
-    }
-    return pieceValueScore;
-  }
-
-  private int mobility(Player player) {
-    return player.getLegalMoves().size();
-  }
-
   private int castlingEvaluation(Player player) {
     Move m = player.getPlayingBoard().getGeneratorMove();
     boolean isCastlingMove = (m instanceof CastlingMove);
     boolean playerMadeThisMove = m.getMovedPiece().getColor() == player.getPlayerColor();
+
     return (isCastlingMove && playerMadeThisMove) ? 500 : 0;
+  }
+
+  private int kingInCheckBonus(Player player) {
+    return player.getOpponentPlayer().isKingInCheck() ? 100 : 0;
   }
 
   public String getEvaluationDescription(Board board) {
@@ -66,16 +74,18 @@ public class HighCostEvaluator implements Evaluator {
     Player b = board.getBlackPlayer();
     String result1 =
             "* WHITE PLAYER" + "\n"
-            + "Pieces value: " + pieceValueCount(w) + "\n"
-            + "Attacks bonus: " + availableGoodAttacks(w) + "\n"
+            + "Pieces value: " + w.getMaterialCount() + "\n"
             + "Mobility bonus: " + mobility(w) + "\n"
-            + "Castling bonus: " + castlingEvaluation(w) + "\n";
+            + "Attacks bonus: " + availableGoodAttacks(w) + "\n"
+            + "Castling bonus: " + castlingEvaluation(w) + "\n"
+            + "Opponent King in check bonus: " + kingInCheckBonus(w) + "\n";
     String result2 =
             "* BLACK PLAYER" + "\n"
-            + "Pieces value: " + pieceValueCount(b) + "\n"
-            + "Attacks bonus: " + availableGoodAttacks(b) + "\n"
+            + "Pieces value: " + b.getMaterialCount() + "\n"
             + "Mobility bonus: " + mobility(b) + "\n"
-            + "Castling bonus: " + castlingEvaluation(b) + "\n";
+            + "Attacks bonus: " + availableGoodAttacks(b) + "\n"
+            + "Castling bonus: " + castlingEvaluation(b) + "\n"
+            + "Opponent King in check bonus: " + kingInCheckBonus(b) + "\n";
     return result1 + result2;
   }
 

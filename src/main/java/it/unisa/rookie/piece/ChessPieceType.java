@@ -5,16 +5,17 @@ public enum ChessPieceType {
   // TODO: Add (better?) values
 
   // Values in "centipawns"
-  PAWN(100, "Pawn", ""),
-  KNIGHT(320, "Knight", "N"),
-  BISHOP(330, "Bishop", "B"),
-  ROOK(500, "Rook", "R"),
-  QUEEN(900, "Queen", "Q"),
-  KING(20000, "King", "K");
+  PAWN(100, "Pawn", "", 0),
+  KNIGHT(320, "Knight", "N", 1),
+  BISHOP(330, "Bishop", "B", 2),
+  ROOK(500, "Rook", "R", 3),
+  QUEEN(900, "Queen", "Q", 4),
+  KING(20000, "King", "K", 5);
 
   private final int value;
   private final String name;
   private final String shortName;
+  private final int id;
 
   public int getValue() {
     return this.value;
@@ -28,10 +29,15 @@ public enum ChessPieceType {
     return this.shortName;
   }
 
-  ChessPieceType(int val, String name, String shortName) {
+  public int getId() {
+    return this.id;
+  }
+
+  ChessPieceType(int val, String name, String shortName, int id) {
     this.value = val;
     this.name = name;
     this.shortName = shortName;
+    this.id = id;
   }
 
 }

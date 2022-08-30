@@ -11,8 +11,6 @@ import it.unisa.rookie.piece.Position;
 import it.unisa.rookie.piece.Queen;
 import it.unisa.rookie.piece.Rook;
 import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Map;
 
 public class Move {
   private final Board board;
@@ -56,6 +54,9 @@ public class Move {
     ArrayList<Piece> whitePieces = new ArrayList<>(this.board.getWhitePieces());
     ArrayList<Piece> blackPieces = new ArrayList<>(this.board.getBlackPieces());
 
+    int whiteScore = this.board.getWhitePlayer().getMaterialCount();
+    int blackScore = this.board.getBlackPlayer().getMaterialCount();
+
     Color currentPlayerColor = this.board.getCurrentPlayer().getPlayerColor();
 
     if (currentPlayerColor == Color.WHITE) {
@@ -82,6 +83,15 @@ public class Move {
     }
     for (Piece p : blackPieces) {
       newBoardPositions[p.getPosition().getValue()] = p;
+    }
+
+    Piece attacked = newBoardPositions[destination.getValue()];
+    if (attacked != null) {
+      if (currentPlayerColor == Color.WHITE) {
+        blackScore -= attacked.getType().getValue();
+      } else {
+        whiteScore -= attacked.getType().getValue();
+      }
     }
 
     // Add the moved piece
@@ -111,7 +121,7 @@ public class Move {
     // Choose the next player
     Color next = (currentPlayerColor == Color.WHITE) ? Color.BLACK : Color.WHITE;
 
-    return new Board(newBoardPositions, next, this);
+    return new Board(newBoardPositions, this, next, whiteScore, blackScore);
   }
 
 
@@ -128,6 +138,7 @@ public class Move {
   }
   */
 
+  /*
   @Override
   public String toString() {
     return "Move{"
@@ -135,6 +146,14 @@ public class Move {
             + " to " + destination
             + ", " + movedPiece.getType()
             + "}";
+  }
+  */
+
+  @Override
+  public String toString() {
+    return movedPiece.getType()
+            + " " + source
+            + " to " + destination;
   }
 
   @Override

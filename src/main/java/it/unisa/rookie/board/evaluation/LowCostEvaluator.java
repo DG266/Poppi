@@ -11,6 +11,12 @@ public class LowCostEvaluator implements Evaluator {
 
   @Override
   public int evaluate(Board board) {
+    return board.getWhitePlayer().getMaterialCount() - board.getBlackPlayer().getMaterialCount();
+  }
+
+  /*
+  @Override
+  public int evaluate(Board board) {
     int whiteScore = 0;
     int blackScore = 0;
     ArrayList<Piece> whitePieces = board.getWhitePieces();
@@ -26,6 +32,7 @@ public class LowCostEvaluator implements Evaluator {
 
     return whiteScore - blackScore;
   }
+  */
 
   @Override
   public String toString() {

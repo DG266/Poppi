@@ -13,7 +13,7 @@ public class MediumCostEvaluator implements Evaluator {
 
   private int getScoreByPlayer(Player player) {
     // TODO: add some weights (maybe)
-    return availableGoodAttacks(player) + pieceValueCount(player);
+    return availableGoodAttacks(player) + player.getMaterialCount();
   }
 
   private int availableGoodAttacks(Player player) {
@@ -37,6 +37,7 @@ public class MediumCostEvaluator implements Evaluator {
     return attackBonus;
   }
 
+  /*
   private int pieceValueCount(Player player) {
     int pieceValueScore = 0;
 
@@ -45,6 +46,7 @@ public class MediumCostEvaluator implements Evaluator {
     }
     return pieceValueScore;
   }
+  */
 
   @Override
   public String toString() {

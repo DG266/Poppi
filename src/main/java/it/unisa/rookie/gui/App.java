@@ -1,6 +1,7 @@
 package it.unisa.rookie.gui;
 
 import it.unisa.rookie.ai.AlphaBetaPlayer;
+import it.unisa.rookie.ai.AlphaBetaPlayerWithMoveOrdering;
 import it.unisa.rookie.ai.ArtificialIntelligencePlayer;
 import it.unisa.rookie.ai.ArtificialIntelligenceTask;
 import it.unisa.rookie.ai.MiniMaxPlayer;
@@ -22,8 +23,6 @@ import java.util.Optional;
 import java.util.Stack;
 import javafx.application.Application;
 import javafx.application.Platform;
-import javafx.concurrent.Service;
-import javafx.concurrent.Task;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
 import javafx.geometry.Insets;
@@ -80,6 +79,7 @@ public class App extends Application {
   private RadioMenuItem minimaxPlayerItem;
   private RadioMenuItem alphaBetaPlayerItem;
   private RadioMenuItem randomAlphaBetaPlayerItem;
+  private RadioMenuItem moveOrderingAlphaBetaPlayerItem;
   private RadioMenuItem lowCostEvItem;
   private RadioMenuItem medCostEvItem;
   private RadioMenuItem highCostEvItem;
@@ -133,6 +133,7 @@ public class App extends Application {
     minimaxPlayerItem = new RadioMenuItem("Minimax player");
     alphaBetaPlayerItem = new RadioMenuItem("Alpha Beta Pruning player");
     randomAlphaBetaPlayerItem = new RadioMenuItem("Random Alpha Beta Pruning player");
+    moveOrderingAlphaBetaPlayerItem = new RadioMenuItem("Alpha Beta Pruning with move ordering player");
 
     ToggleGroup playerRadioGroup = new ToggleGroup();
 
@@ -140,15 +141,17 @@ public class App extends Application {
     minimaxPlayerItem.setToggleGroup(playerRadioGroup);
     alphaBetaPlayerItem.setToggleGroup(playerRadioGroup);
     randomAlphaBetaPlayerItem.setToggleGroup(playerRadioGroup);
+    moveOrderingAlphaBetaPlayerItem.setToggleGroup(playerRadioGroup);
 
     // Default value
-    alphaBetaPlayerItem.setSelected(true);
+    moveOrderingAlphaBetaPlayerItem.setSelected(true);
 
     playerTypeMenu.getItems().addAll(
             randomPlayerItem,
             minimaxPlayerItem,
             alphaBetaPlayerItem,
-            randomAlphaBetaPlayerItem
+            randomAlphaBetaPlayerItem,
+            moveOrderingAlphaBetaPlayerItem
     );
 
     // Evaluator Type Menu
@@ -433,7 +436,9 @@ public class App extends Application {
     }
 
     // Read user-chosen AI player type
-    if (randomAlphaBetaPlayerItem.isSelected()) {
+    if (moveOrderingAlphaBetaPlayerItem.isSelected()) {
+      ai = new AlphaBetaPlayerWithMoveOrdering(depth, ev);
+    } else if (randomAlphaBetaPlayerItem.isSelected()) {
       ai = new RandomAlphaBetaPlayer(depth, ev);
     } else if (alphaBetaPlayerItem.isSelected()) {
       ai = new AlphaBetaPlayer(depth, ev);
@@ -553,7 +558,7 @@ public class App extends Application {
             + "\nBlack pcs: " + gameBoard.getBlackPieces() + "\n\n");
 
     // TODO: Should print somewhere else
-    System.out.println(new HighCostEvaluator().getEvaluationDescription(gameBoard));
+    //System.out.println(new HighCostEvaluator().getEvaluationDescription(gameBoard));
   }
 
   public void logKingInCheckInfo(Player player) {

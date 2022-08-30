@@ -17,16 +17,21 @@ public class Board {
   private Move generatorMove;
   private Player currentPlayer;
   private Player opponentPlayer;
-  private King currentPlayerKing;
-  private King opponentPlayerKing;
   private ArrayList<Piece> whitePieces;
   private ArrayList<Piece> blackPieces;
 
-  public Board(Piece[] boardPositions, Color currentPlayerColor, Move transition) {
+  public Board(Piece[] boardPositions,
+               Move generatorMove,
+               Color currentPlayerColor,
+               int whiteScore,
+               int blackScore) {
     this.boardPositions = boardPositions;
-    this.generatorMove = transition;
+    this.generatorMove = generatorMove;
     this.whitePieces = new ArrayList<>();
     this.blackPieces = new ArrayList<>();
+
+    King currentPlayerKing = null;
+    King opponentPlayerKing = null;
 
     for (Piece p : boardPositions) {
       if (p != null) {
@@ -38,9 +43,9 @@ public class Board {
 
         if (p.getType() == ChessPieceType.KING) {
           if (p.getColor() == currentPlayerColor) {
-            this.currentPlayerKing = (King) p;
+            currentPlayerKing = (King) p;
           } else {
-            this.opponentPlayerKing = (King) p;
+            opponentPlayerKing = (King) p;
           }
         }
       }
@@ -48,6 +53,8 @@ public class Board {
 
     // Current player / Opponent player creation
     Color opponentPlayerColor = (currentPlayerColor == Color.WHITE) ? Color.BLACK : Color.WHITE;
+
+    // Calculate legal moves for both players
     ArrayList<Move> currentPlayerLegalMoves = (currentPlayerColor == Color.WHITE)
             ? getLegalMoves(this.whitePieces)
             : this.getLegalMoves(this.blackPieces);
@@ -55,30 +62,32 @@ public class Board {
             ? this.getLegalMoves(this.blackPieces)
             : getLegalMoves(this.whitePieces);
 
-    ArrayList<Move> currentPlayerThreats = getThreats(
+    ArrayList<Move> currentPlayerKingThreats = getThreats(
             currentPlayerKing.getPosition().getValue(),
             opponentPlayerLegalMoves
     );
 
-    ArrayList<Move> opponentPlayerThreats = getThreats(
+    ArrayList<Move> opponentPlayerKingThreats = getThreats(
             opponentPlayerKing.getPosition().getValue(),
             currentPlayerLegalMoves
     );
-
 
     this.currentPlayer = new Player(
             this,
             currentPlayerColor,
             currentPlayerLegalMoves,
-            !(currentPlayerThreats.isEmpty())
+            currentPlayerKingThreats,
+            currentPlayerColor == Color.WHITE ? whiteScore : blackScore
     );
     this.opponentPlayer = new Player(
             this,
             opponentPlayerColor,
             opponentPlayerLegalMoves,
-            !(opponentPlayerThreats.isEmpty())
+            opponentPlayerKingThreats,
+            opponentPlayerColor == Color.WHITE ? whiteScore : blackScore
     );
 
+    // Search for castling moves
     currentPlayerLegalMoves.addAll(currentPlayerKing.getCastlingMoves(this));
     opponentPlayerLegalMoves.addAll(opponentPlayerKing.getCastlingMoves(this));
 
@@ -92,6 +101,8 @@ public class Board {
 
     this.blackPieces = new ArrayList<>();
     this.whitePieces = new ArrayList<>();
+    int blackScore = 0;
+    int whiteScore = 0;
 
     blackPieces.add(new Rook(Color.BLACK, Position.A8));
     blackPieces.add(new Knight(Color.BLACK, Position.B8));
@@ -129,10 +140,12 @@ public class Board {
 
     for (Piece p : blackPieces) {
       putPiece(p);
+      blackScore += p.getType().getValue();
     }
 
     for (Piece p : whitePieces) {
       putPiece(p);
+      whiteScore += p.getType().getValue();
     }
 
     this.currentPlayer = new Player(
@@ -141,7 +154,10 @@ public class Board {
             (startingPlayerColor == Color.WHITE)
                     ? getLegalMoves(this.whitePieces)
                     : getLegalMoves(this.blackPieces),
-            false
+            new ArrayList<>(),
+            (startingPlayerColor == Color.WHITE)
+                    ? whiteScore
+                    : blackScore
     );
     this.opponentPlayer = new Player(
             this,
@@ -149,7 +165,10 @@ public class Board {
             (startingPlayerColor == Color.WHITE)
                     ? getLegalMoves(this.blackPieces)
                     : getLegalMoves(this.whitePieces),
-            false
+            new ArrayList<>(),
+            (startingPlayerColor == Color.WHITE)
+                    ? whiteScore
+                    : blackScore
     );
   }
 
