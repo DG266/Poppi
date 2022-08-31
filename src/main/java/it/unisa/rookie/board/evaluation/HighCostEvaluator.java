@@ -66,7 +66,16 @@ public class HighCostEvaluator implements Evaluator {
   }
 
   private int kingInCheckBonus(Player player) {
-    return player.getOpponentPlayer().isKingInCheck() ? 100 : 0;
+    Board board = player.getPlayingBoard();
+    Player opponent = player.getOpponentPlayer();
+
+    if (opponent.isKingInCheck()) {
+      if (!(board.isCheckMateAvoidable(opponent))) {
+        return 10000;
+      }
+      return 100;
+    }
+    return 0;
   }
 
   public String getEvaluationDescription(Board board) {

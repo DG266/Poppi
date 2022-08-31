@@ -50,6 +50,15 @@
                             <noHeaderFiles>true</noHeaderFiles>
                         </configuration>
                     </execution>
+                    <execution>
+                        <id>debug</id>
+                        <configuration>
+                            <mainClass>it.unisa/it.unisa.rookie.gui.App</mainClass>
+                            <options>
+                                <option>-agentlib:jdwp=transport=dt_socket,server=y,suspend=y,address=*:8080</option>
+                            </options>
+                        </configuration>
+                    </execution>
                 </executions>
             </plugin>
         </plugins>

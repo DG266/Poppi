@@ -2,6 +2,7 @@ package it.unisa.rookie.gui;
 
 import it.unisa.rookie.ai.AlphaBetaPlayer;
 import it.unisa.rookie.ai.AlphaBetaPlayerWithMoveOrdering;
+import it.unisa.rookie.ai.AlphaBetaPlayerWithMoveOrderingAndKillerMoves;
 import it.unisa.rookie.ai.ArtificialIntelligencePlayer;
 import it.unisa.rookie.ai.ArtificialIntelligenceTask;
 import it.unisa.rookie.ai.MiniMaxPlayer;
@@ -80,6 +81,7 @@ public class App extends Application {
   private RadioMenuItem alphaBetaPlayerItem;
   private RadioMenuItem randomAlphaBetaPlayerItem;
   private RadioMenuItem moveOrderingAlphaBetaPlayerItem;
+  private RadioMenuItem killerAlphaBetaPlayerItem;
   private RadioMenuItem lowCostEvItem;
   private RadioMenuItem medCostEvItem;
   private RadioMenuItem highCostEvItem;
@@ -134,6 +136,7 @@ public class App extends Application {
     alphaBetaPlayerItem = new RadioMenuItem("Alpha Beta Pruning player");
     randomAlphaBetaPlayerItem = new RadioMenuItem("Random Alpha Beta Pruning player");
     moveOrderingAlphaBetaPlayerItem = new RadioMenuItem("Alpha Beta Pruning with move ordering player");
+    killerAlphaBetaPlayerItem = new RadioMenuItem("Alpha Beta Pruning with move ordering and killer moves player");
 
     ToggleGroup playerRadioGroup = new ToggleGroup();
 
@@ -142,16 +145,18 @@ public class App extends Application {
     alphaBetaPlayerItem.setToggleGroup(playerRadioGroup);
     randomAlphaBetaPlayerItem.setToggleGroup(playerRadioGroup);
     moveOrderingAlphaBetaPlayerItem.setToggleGroup(playerRadioGroup);
+    killerAlphaBetaPlayerItem.setToggleGroup(playerRadioGroup);
 
     // Default value
-    moveOrderingAlphaBetaPlayerItem.setSelected(true);
+    killerAlphaBetaPlayerItem.setSelected(true);
 
     playerTypeMenu.getItems().addAll(
             randomPlayerItem,
             minimaxPlayerItem,
             alphaBetaPlayerItem,
             randomAlphaBetaPlayerItem,
-            moveOrderingAlphaBetaPlayerItem
+            moveOrderingAlphaBetaPlayerItem,
+            killerAlphaBetaPlayerItem
     );
 
     // Evaluator Type Menu
@@ -436,7 +441,9 @@ public class App extends Application {
     }
 
     // Read user-chosen AI player type
-    if (moveOrderingAlphaBetaPlayerItem.isSelected()) {
+    if (killerAlphaBetaPlayerItem.isSelected()) {
+      ai = new AlphaBetaPlayerWithMoveOrderingAndKillerMoves(depth, ev);
+    } else if (moveOrderingAlphaBetaPlayerItem.isSelected()) {
       ai = new AlphaBetaPlayerWithMoveOrdering(depth, ev);
     } else if (randomAlphaBetaPlayerItem.isSelected()) {
       ai = new RandomAlphaBetaPlayer(depth, ev);

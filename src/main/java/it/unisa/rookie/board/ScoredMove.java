@@ -24,4 +24,12 @@ public class ScoredMove {
   public void setMove(Move move) {
     this.move = move;
   }
+
+  @Override
+  public String toString() {
+    return "ScoredMove{"
+            + "score=" + score
+            + ", move=" + move
+            + "}";
+  }
 }
