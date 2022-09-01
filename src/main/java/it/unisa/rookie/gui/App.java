@@ -561,11 +561,11 @@ public class App extends Application {
             + " - WhiteInCheckMate: " + whiteInCheckMate
             + "\nBlackInCheck: " + blackInCheck
             + " - BlackInCheckMate: " + blackInCheckMate
-            + "\nWhite pcs: " + gameBoard.getWhitePieces()
-            + "\nBlack pcs: " + gameBoard.getBlackPieces() + "\n\n");
-
-    // TODO: Should print somewhere else
-    //System.out.println(new HighCostEvaluator().getEvaluationDescription(gameBoard));
+            //+ "\nWhite pcs: " + gameBoard.getWhitePieces()
+            //+ "\nBlack pcs: " + gameBoard.getBlackPieces()
+            + "\n"
+            + new HighCostEvaluator().getEvaluationDescription(gameBoard)
+    );
   }
 
   public void logKingInCheckInfo(Player player) {

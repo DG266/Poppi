@@ -13,7 +13,9 @@ public class MediumCostEvaluator implements Evaluator {
 
   private int getScoreByPlayer(Player player) {
     // TODO: add some weights (maybe)
-    return availableGoodAttacks(player) + player.getMaterialCount();
+    return player.getMaterialCount()
+            + availableGoodAttacks(player)
+            + kingInCheckBonus(player);
   }
 
   private int availableGoodAttacks(Player player) {
@@ -35,6 +37,19 @@ public class MediumCostEvaluator implements Evaluator {
       }
     }
     return attackBonus;
+  }
+
+  private int kingInCheckBonus(Player player) {
+    Board board = player.getPlayingBoard();
+    Player opponent = player.getOpponentPlayer();
+
+    if (opponent.isKingInCheck()) {
+      if (!(board.isCheckMateAvoidable(opponent))) {
+        return 10000;
+      }
+      return 100;
+    }
+    return 0;
   }
 
   /*
