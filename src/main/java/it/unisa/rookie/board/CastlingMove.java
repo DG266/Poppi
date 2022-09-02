@@ -102,9 +102,10 @@ public class CastlingMove extends Move {
     // Choose the next player
     Color next = (currentPlayerColor == Color.WHITE) ? Color.BLACK : Color.WHITE;
 
-    return new Board(newBoardPositions, this, next, whiteScore, blackScore);
+    return new Board(newBoardPositions, this, next, null, whiteScore, blackScore);
   }
 
+  /*
   @Override
   public String toString() {
     return "Move{"
@@ -117,6 +118,12 @@ public class CastlingMove extends Move {
             + ", castleDestination=" + this.getCastleDestination()
             + ", castle=" + this.getCastle()
             + "}";
+  }
+  */
+
+  @Override
+  public String toString() {
+    return super.toString() + " - Castling";
   }
 
   @Override

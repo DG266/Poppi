@@ -1,29 +1,27 @@
 package it.unisa.rookie.board;
 
-import it.unisa.rookie.piece.ChessPieceType;
-import it.unisa.rookie.piece.Color;
-import it.unisa.rookie.piece.Piece;
-import it.unisa.rookie.piece.Position;
+import it.unisa.rookie.piece.*;
+
 import java.util.ArrayList;
 
-public class PawnPromotionMove extends Move {
-  private Piece promotionPiece;
+public class EnPassantCaptureMove extends Move {
+  private Piece enPassantToCapture;
 
-  public PawnPromotionMove(Board board, Position source, Position destination, Piece movedPiece,
-                           Piece promotionPiece) {
+  public EnPassantCaptureMove(Board board, Position source, Position destination, Piece movedPiece,
+                              Piece enPassantToCapture) {
     super(board, source, destination, movedPiece);
-    this.promotionPiece = promotionPiece;
+    this.enPassantToCapture = enPassantToCapture;
   }
 
-  public Piece getPromotionPiece() {
-    return promotionPiece;
+  public Piece getEnPassantToCapture() {
+    return enPassantToCapture;
   }
 
-  public void setPromotionPiece(Piece promotionPiece) {
-    this.promotionPiece = promotionPiece;
+  public void setEnPassantToCapture(Piece enPassantToCapture) {
+    this.enPassantToCapture = enPassantToCapture;
   }
 
-  @Override
+
   public Board makeMove() {
     ArrayList<Piece> whitePieces = new ArrayList<>(this.getBoard().getWhitePieces());
     ArrayList<Piece> blackPieces = new ArrayList<>(this.getBoard().getBlackPieces());
@@ -59,26 +57,23 @@ public class PawnPromotionMove extends Move {
       newBoardPositions[p.getPosition().getValue()] = p;
     }
 
-    // Update piece count score if the promotion tile was NOT empty
-    Piece attacked = newBoardPositions[getDestination().getValue()];
-    if (attacked != null) {
-      if (currentPlayerColor == Color.WHITE) {
-        blackScore -= attacked.getType().getValue();
-      } else {
-        whiteScore -= attacked.getType().getValue();
-      }
+    // Opponent loses a pawn -> - score
+    if (currentPlayerColor == Color.WHITE) {
+      blackScore -= ChessPieceType.PAWN.getValue();
+    } else {
+      whiteScore -= ChessPieceType.PAWN.getValue();
     }
+
+    // Remove En Passant Captured Pawn
+    newBoardPositions[enPassantToCapture.getPosition().getValue()] = null;
 
     // Add the moved piece
-    newBoardPositions[getDestination().getValue()] = this.promotionPiece;
-
-    // Update piece count for current player
-    // Lose a pawn -> - pawn value
-    // Get a new piece -> + value of the chosen promotion piece
-    if (currentPlayerColor == Color.WHITE) {
-      whiteScore -= ChessPieceType.PAWN.getValue();
-      whiteScore += this.promotionPiece.getType().getValue();
+    Piece clonePawn = new Pawn(getMovedPiece().getColor(), getMovedPiece().getPosition(), getMovedPiece().isFirstMove());
+    if (clonePawn.isFirstMove()) {
+      clonePawn.setFirstMove(false);
     }
+    clonePawn.setPosition(getDestination());
+    newBoardPositions[getDestination().getValue()] = clonePawn;
 
     // Choose the next player
     Color next = (currentPlayerColor == Color.WHITE) ? Color.BLACK : Color.WHITE;
@@ -95,21 +90,22 @@ public class PawnPromotionMove extends Move {
             + "source=" + this.getSource()
             + ", destination=" + this.getDestination()
             + ", movedPiece=" + this.getMovedPiece()
-            + ", promotionPiece=" + this.getPromotionPiece()
+            + ", enPassantToCapture=" + this.enPassantToCapture
             + "}";
   }
   */
 
   @Override
   public String toString() {
-    return super.toString() + " - Promotion to " + this.promotionPiece.getType();
+    return super.toString() + " - En Passant Capture";
   }
 
   @Override
   public boolean equals(Object o) {
-    if (o instanceof PawnPromotionMove) {
-      return super.equals(o) && promotionPiece.equals(((PawnPromotionMove) o).getPromotionPiece());
+    if (o instanceof EnPassantCaptureMove) {
+      return super.equals(o) && enPassantToCapture.equals(((EnPassantCaptureMove) o).getEnPassantToCapture());
     }
     return false;
   }
+
 }

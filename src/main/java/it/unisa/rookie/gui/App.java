@@ -561,6 +561,7 @@ public class App extends Application {
             + " - WhiteInCheckMate: " + whiteInCheckMate
             + "\nBlackInCheck: " + blackInCheck
             + " - BlackInCheckMate: " + blackInCheckMate
+            + "\nEnPassantPawn: " + gameBoard.getEnPassant()
             //+ "\nWhite pcs: " + gameBoard.getWhitePieces()
             //+ "\nBlack pcs: " + gameBoard.getBlackPieces()
             + "\n"

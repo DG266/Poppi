@@ -20,13 +20,17 @@ public class Board {
   private ArrayList<Piece> whitePieces;
   private ArrayList<Piece> blackPieces;
 
+  private Piece enPassant;
+
   public Board(Piece[] boardPositions,
                Move generatorMove,
                Color currentPlayerColor,
+               Piece enPassant,
                int whiteScore,
                int blackScore) {
     this.boardPositions = boardPositions;
     this.generatorMove = generatorMove;
+    this.enPassant = enPassant;
     this.whitePieces = new ArrayList<>();
     this.blackPieces = new ArrayList<>();
 
@@ -218,6 +222,14 @@ public class Board {
 
   public void setBlackPieces(ArrayList<Piece> blackPieces) {
     this.blackPieces = blackPieces;
+  }
+
+  public Piece getEnPassant() {
+    return enPassant;
+  }
+
+  public void setEnPassant(Piece enPassant) {
+    this.enPassant = enPassant;
   }
 
   public ArrayList<Move> getAllPossibleLegalMoves() {

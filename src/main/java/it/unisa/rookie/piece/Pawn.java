@@ -1,7 +1,9 @@
 package it.unisa.rookie.piece;
 
 import it.unisa.rookie.board.Board;
+import it.unisa.rookie.board.EnPassantCaptureMove;
 import it.unisa.rookie.board.Move;
+import it.unisa.rookie.board.PawnLongMove;
 import it.unisa.rookie.board.PawnPromotionMove;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -26,10 +28,13 @@ public class Pawn extends Piece {
 
     // Black pawns "move forward" (+1 * offset) and White pawns "move backwards" (-1 * offset)
     int adjustment;
+    int oppositeAdjustment;
     if (this.getColor() == Color.BLACK) {
       adjustment = 1;
+      oppositeAdjustment = -1;
     } else {
       adjustment = -1;
+      oppositeAdjustment = 1;
     }
 
     for (int offset : possibleOffsets) {
@@ -70,12 +75,14 @@ public class Pawn extends Piece {
         int candidateDestinationPreviousTile = this.getPosition().getValue() + (adjustment * 8);
         if (board.getPiece(candidateDestinationPreviousTile) == null
             && board.getPiece(candidateDestination) == null) {
-          moves.add(new Move(board,
+          moves.add(new PawnLongMove(board,
                   this.getPosition(),
                   Position.values()[candidateDestination],
+                  this,
                   this)
           );
         }
+
       // Attack diagonally (Black - left | White - right)
       } else if (offset == 7
               && !((column == 7 && this.getColor() == Color.WHITE)
@@ -104,7 +111,20 @@ public class Pawn extends Piece {
               );
             }
           }
+          // En Passant Capture
+        } else if (board.getEnPassant() != null
+                && board.getEnPassant().getPosition().getValue() == (this.getPosition().getValue() + oppositeAdjustment)) {
+          Piece enPassantToCapture = board.getEnPassant();
+          if (enPassantToCapture.getColor() != this.getColor()) {
+            moves.add(new EnPassantCaptureMove(board,
+                    this.getPosition(),
+                    Position.values()[candidateDestination],
+                    this,
+                    enPassantToCapture)
+            );
+          }
         }
+
       // Attack diagonally (Black - right | White - left)
       } else if (offset == 9
               && !((column == 0 && this.getColor() == Color.WHITE)
@@ -132,6 +152,18 @@ public class Pawn extends Piece {
                       this)
               );
             }
+          }
+          // En Passant Capture
+        }  else if (board.getEnPassant() != null
+                && board.getEnPassant().getPosition().getValue() == (this.getPosition().getValue() - oppositeAdjustment)) {
+          Piece enPassantToCapture = board.getEnPassant();
+          if (enPassantToCapture.getColor() != this.getColor()) {
+            moves.add(new EnPassantCaptureMove(board,
+                    this.getPosition(),
+                    Position.values()[candidateDestination],
+                    this,
+                    enPassantToCapture)
+            );
           }
         }
       }

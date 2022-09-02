@@ -1,26 +1,26 @@
 package it.unisa.rookie.board;
 
-import it.unisa.rookie.piece.ChessPieceType;
 import it.unisa.rookie.piece.Color;
+import it.unisa.rookie.piece.Pawn;
 import it.unisa.rookie.piece.Piece;
 import it.unisa.rookie.piece.Position;
 import java.util.ArrayList;
 
-public class PawnPromotionMove extends Move {
-  private Piece promotionPiece;
+public class PawnLongMove extends Move {
+  private Piece enPassant;
 
-  public PawnPromotionMove(Board board, Position source, Position destination, Piece movedPiece,
-                           Piece promotionPiece) {
+  public PawnLongMove(Board board, Position source, Position destination, Piece movedPiece,
+                      Piece enPassant) {
     super(board, source, destination, movedPiece);
-    this.promotionPiece = promotionPiece;
+    this.enPassant = enPassant;
   }
 
-  public Piece getPromotionPiece() {
-    return promotionPiece;
+  public Piece getEnPassant() {
+    return enPassant;
   }
 
-  public void setPromotionPiece(Piece promotionPiece) {
-    this.promotionPiece = promotionPiece;
+  public void setEnPassant(Piece enPassant) {
+    this.enPassant = enPassant;
   }
 
   @Override
@@ -59,31 +59,17 @@ public class PawnPromotionMove extends Move {
       newBoardPositions[p.getPosition().getValue()] = p;
     }
 
-    // Update piece count score if the promotion tile was NOT empty
-    Piece attacked = newBoardPositions[getDestination().getValue()];
-    if (attacked != null) {
-      if (currentPlayerColor == Color.WHITE) {
-        blackScore -= attacked.getType().getValue();
-      } else {
-        whiteScore -= attacked.getType().getValue();
-      }
+    Piece cloneEnPassant = new Pawn(getMovedPiece().getColor(), getMovedPiece().getPosition(), getMovedPiece().isFirstMove());
+    if (cloneEnPassant.isFirstMove()) {
+      cloneEnPassant.setFirstMove(false);
     }
-
-    // Add the moved piece
-    newBoardPositions[getDestination().getValue()] = this.promotionPiece;
-
-    // Update piece count for current player
-    // Lose a pawn -> - pawn value
-    // Get a new piece -> + value of the chosen promotion piece
-    if (currentPlayerColor == Color.WHITE) {
-      whiteScore -= ChessPieceType.PAWN.getValue();
-      whiteScore += this.promotionPiece.getType().getValue();
-    }
+    cloneEnPassant.setPosition(getDestination());
+    newBoardPositions[getDestination().getValue()] = cloneEnPassant;
 
     // Choose the next player
     Color next = (currentPlayerColor == Color.WHITE) ? Color.BLACK : Color.WHITE;
 
-    return new Board(newBoardPositions, this, next, null, whiteScore, blackScore);
+    return new Board(newBoardPositions, this, next, cloneEnPassant, whiteScore, blackScore);
   }
 
   /*
@@ -95,21 +81,22 @@ public class PawnPromotionMove extends Move {
             + "source=" + this.getSource()
             + ", destination=" + this.getDestination()
             + ", movedPiece=" + this.getMovedPiece()
-            + ", promotionPiece=" + this.getPromotionPiece()
+            + ", enPassant=" + this.enPassant
             + "}";
   }
   */
 
   @Override
   public String toString() {
-    return super.toString() + " - Promotion to " + this.promotionPiece.getType();
+    return super.toString();
   }
 
   @Override
   public boolean equals(Object o) {
-    if (o instanceof PawnPromotionMove) {
-      return super.equals(o) && promotionPiece.equals(((PawnPromotionMove) o).getPromotionPiece());
+    if (o instanceof PawnLongMove) {
+      return super.equals(o) && enPassant.equals(((PawnLongMove) o).getEnPassant());
     }
     return false;
   }
+
 }
