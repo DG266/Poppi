@@ -1,11 +1,14 @@
 package it.unisa.rookie.board;
 
-import it.unisa.rookie.piece.*;
-
+import it.unisa.rookie.piece.ChessPieceType;
+import it.unisa.rookie.piece.Color;
+import it.unisa.rookie.piece.Pawn;
+import it.unisa.rookie.piece.Piece;
+import it.unisa.rookie.piece.Position;
 import java.util.ArrayList;
 
 public class EnPassantCaptureMove extends Move {
-  private Piece enPassantToCapture;
+  private final Piece enPassantToCapture;
 
   public EnPassantCaptureMove(Board board, Position source, Position destination, Piece movedPiece,
                               Piece enPassantToCapture) {
@@ -16,11 +19,6 @@ public class EnPassantCaptureMove extends Move {
   public Piece getEnPassantToCapture() {
     return enPassantToCapture;
   }
-
-  public void setEnPassantToCapture(Piece enPassantToCapture) {
-    this.enPassantToCapture = enPassantToCapture;
-  }
-
 
   public Board makeMove() {
     ArrayList<Piece> whitePieces = new ArrayList<>(this.getBoard().getWhitePieces());

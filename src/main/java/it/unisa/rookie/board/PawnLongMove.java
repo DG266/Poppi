@@ -7,7 +7,7 @@ import it.unisa.rookie.piece.Position;
 import java.util.ArrayList;
 
 public class PawnLongMove extends Move {
-  private Piece enPassant;
+  private final Piece enPassant;
 
   public PawnLongMove(Board board, Position source, Position destination, Piece movedPiece,
                       Piece enPassant) {
@@ -17,10 +17,6 @@ public class PawnLongMove extends Move {
 
   public Piece getEnPassant() {
     return enPassant;
-  }
-
-  public void setEnPassant(Piece enPassant) {
-    this.enPassant = enPassant;
   }
 
   @Override

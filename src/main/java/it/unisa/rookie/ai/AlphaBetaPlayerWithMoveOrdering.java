@@ -67,23 +67,10 @@ public class AlphaBetaPlayerWithMoveOrdering implements ArtificialIntelligencePl
     ArrayList<Move> legalMoves = board.getCurrentPlayer().getLegalMoves();
     Collections.sort(legalMoves, new MoveComparator());
 
-    /*
-    if (this.depth == depth) {
-      int counter = 1;
-      System.out.println("\tSORTED LEGALS:");
-      for (Move m : legalMoves) {
-        System.out.println("\t" + counter + ") " + m + " mvvlva: " + new MoveComparator().mvvlva(m) + " ");
-        counter++;
-      }
-    }
-    */
-
     for (Move move : legalMoves) {
-      /*
       if (this.depth == depth) {
         System.out.println("\tAnalyzing: " + move);
       }
-      */
 
       Board transitionedBoard = move.makeMove();
       if (transitionedBoard.getOpponentPlayer().isKingInCheck()) {
@@ -114,23 +101,10 @@ public class AlphaBetaPlayerWithMoveOrdering implements ArtificialIntelligencePl
     ArrayList<Move> legalMoves = board.getCurrentPlayer().getLegalMoves();
     Collections.sort(legalMoves, new MoveComparator());
 
-    /*
-    if (this.depth == depth) {
-      int counter = 1;
-      System.out.println("\tSORTED LEGALS:");
-      for (Move m : legalMoves) {
-        System.out.println("\t" + counter + ") " + m + " mvvlva: " + new MoveComparator().mvvlva(m) + " ");
-        counter++;
-      }
-    }
-    */
-
     for (Move move : legalMoves) {
-      /*
       if (this.depth == depth) {
         System.out.println("\tAnalyzing: " + move);
       }
-      */
 
       Board transitionedBoard = move.makeMove();
       if (transitionedBoard.getOpponentPlayer().isKingInCheck()) {

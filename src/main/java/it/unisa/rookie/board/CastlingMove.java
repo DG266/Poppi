@@ -8,9 +8,9 @@ import it.unisa.rookie.piece.Rook;
 import java.util.ArrayList;
 
 public class CastlingMove extends Move {
-  private Position castleSource;
-  private Position castleDestination;
-  private Piece castle;
+  private final Position castleSource;
+  private final Position castleDestination;
+  private final Piece castle;
 
   public CastlingMove(Board board,
                       Position source, Position destination, Piece movedPiece,
@@ -25,24 +25,12 @@ public class CastlingMove extends Move {
     return castleSource;
   }
 
-  public void setCastleSource(Position castleSource) {
-    this.castleSource = castleSource;
-  }
-
   public Position getCastleDestination() {
     return castleDestination;
   }
 
-  public void setCastleDestination(Position castleDestination) {
-    this.castleDestination = castleDestination;
-  }
-
   public Piece getCastle() {
     return castle;
-  }
-
-  public void setCastle(Piece castle) {
-    this.castle = castle;
   }
 
   @Override

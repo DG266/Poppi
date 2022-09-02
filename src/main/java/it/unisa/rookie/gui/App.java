@@ -10,14 +10,19 @@ import it.unisa.rookie.ai.RandomAlphaBetaPlayer;
 import it.unisa.rookie.ai.RandomPlayer;
 import it.unisa.rookie.board.Board;
 import it.unisa.rookie.board.Move;
+import it.unisa.rookie.board.PawnPromotionMove;
 import it.unisa.rookie.board.Player;
 import it.unisa.rookie.board.Transition;
 import it.unisa.rookie.board.evaluation.Evaluator;
 import it.unisa.rookie.board.evaluation.HighCostEvaluator;
 import it.unisa.rookie.board.evaluation.LowCostEvaluator;
 import it.unisa.rookie.board.evaluation.MediumCostEvaluator;
+import it.unisa.rookie.piece.Bishop;
+import it.unisa.rookie.piece.Knight;
 import it.unisa.rookie.piece.Piece;
 import it.unisa.rookie.piece.Position;
+import it.unisa.rookie.piece.Queen;
+import it.unisa.rookie.piece.Rook;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Optional;
@@ -64,6 +69,9 @@ public class App extends Application {
   // private static final double BOARD_MIN_HEIGHT = 200;
   // private static final double BOARD_MAX_WIDTH = 400;
   // private static final double BOARD_MAX_HEIGHT = 400;
+
+  private static final it.unisa.rookie.piece.Color WHITE = it.unisa.rookie.piece.Color.WHITE;
+  private static final it.unisa.rookie.piece.Color BLACK = it.unisa.rookie.piece.Color.BLACK;
 
   private Board gameBoard;
 
@@ -368,7 +376,7 @@ public class App extends Application {
       ) {
           selectedPiece = gameBoard.getPiece(selectedTile.getTileId());
       } else if (selectedPiece != null) {
-        Move move = new Move(
+        Move userMove = new Move(
                 gameBoard,
                 selectedPiece.getPosition(),
                 Position.values()[selectedTile.getTileId()],
@@ -380,18 +388,31 @@ public class App extends Application {
 
         boolean found = false;
         for (Move m : legalMoves) {
-          if (move.equals(m)) {
-            move = m;    // Do this to get the appropriate makeMove() (it's kinda bad)
+          if (userMove.equals(m)) {
+            if (m instanceof PawnPromotionMove) {
+              Piece chosenPromotionPiece = choosePromotionPiece(m);
+              PawnPromotionMove cloneMove = new PawnPromotionMove(
+                      m.getBoard(),
+                      m.getSource(),
+                      m.getDestination(),
+                      m.getMovedPiece(),
+                      chosenPromotionPiece
+              );
+              userMove = cloneMove;
+            } else {
+              userMove = m;    // Do this to get the appropriate makeMove() (it's kinda bad)
+            }
             found = true;
+            break;
           }
         }
 
         if (found) {
-          Board newGameBoard = move.makeMove();
+          Board newGameBoard = userMove.makeMove();
           if (newGameBoard.getOpponentPlayer().isKingInCheck()) {
             logKingInCheckInfo(newGameBoard.getOpponentPlayer());
           } else {
-            Transition t = new Transition(gameBoard, newGameBoard, move);
+            Transition t = new Transition(gameBoard, newGameBoard, userMove);
             gameHistory.push(t);
             gameBoard = newGameBoard;
 
@@ -409,6 +430,37 @@ public class App extends Application {
       });
     }
   };
+
+  public Piece choosePromotionPiece(Move move) {
+    Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
+    alert.setTitle("Pawn Promotion!");
+    alert.setHeaderText("Your pawn has been promoted!");
+    alert.setContentText("What shall it become?");
+
+    ButtonType buttonQueen = new ButtonType("Queen");
+    ButtonType buttonRook = new ButtonType("Rook");
+    ButtonType buttonBishop = new ButtonType("Bishop");
+    ButtonType buttonKnight = new ButtonType("Knight");
+    ButtonType buttonCancel = new ButtonType("Cancel", ButtonBar.ButtonData.CANCEL_CLOSE);
+
+    alert.getButtonTypes().setAll(buttonQueen, buttonRook, buttonBishop, buttonKnight, buttonCancel);
+
+    it.unisa.rookie.piece.Color color = move.getMovedPiece().getColor();
+    Position destination = move.getDestination();
+
+    Optional<ButtonType> result = alert.showAndWait();
+    if (result.get() == buttonQueen) {
+      return new Queen(color, destination, false);
+    } else if (result.get() == buttonRook) {
+      return new Rook(color, destination, false);
+    } else if (result.get() == buttonBishop) {
+      return new Bishop(color, destination, false);
+    } else if (result.get() == buttonKnight) {
+      return new Knight(color, destination, false);
+    } else {
+      return new Queen(color, destination, false);
+    }
+  }
 
   public void createArtificialIntelligenceTask() {
     int depth = 0;
@@ -480,7 +532,7 @@ public class App extends Application {
   public void letComputerPlayIfPossible() {
     if (!gameBoard.matchIsOver() && isComputerTurn()) {
 
-      if (gameBoard.getCurrentPlayer().getPlayerColor() == it.unisa.rookie.piece.Color.WHITE) {
+      if (gameBoard.getCurrentPlayer().getPlayerColor() == WHITE) {
         this.isWhiteAiCheckBox.setDisable(true);
         this.isBlackAiCheckBox.setDisable(false);
       } else {
@@ -529,7 +581,7 @@ public class App extends Application {
     this.selectedPiece = null;
     this.aiTransition = null;
     this.gameHistory = new Stack<>();
-    this.gameBoard = new Board(it.unisa.rookie.piece.Color.WHITE);
+    this.gameBoard = new Board(WHITE);
 
     this.isWhiteAiCheckBox.setDisable(false);
     this.isBlackAiCheckBox.setDisable(false);
@@ -538,7 +590,7 @@ public class App extends Application {
   }
 
   public boolean isComputerTurn() {
-    if (gameBoard.getCurrentPlayer().getPlayerColor() == it.unisa.rookie.piece.Color.WHITE) {
+    if (gameBoard.getCurrentPlayer().getPlayerColor() == WHITE) {
       return this.isWhiteAi;
     } else {
       return this.isBlackAi;
@@ -577,7 +629,7 @@ public class App extends Application {
   public void start(Stage primaryStage) {
     this.gameHistory = new Stack<>();
 
-    it.unisa.rookie.piece.Color startingPlayerColor = it.unisa.rookie.piece.Color.WHITE;
+    it.unisa.rookie.piece.Color startingPlayerColor = WHITE;
 
     // Two human players - default
     this.isWhiteAi = false;

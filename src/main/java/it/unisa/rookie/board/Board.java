@@ -13,14 +13,14 @@ import it.unisa.rookie.piece.Rook;
 import java.util.ArrayList;
 
 public class Board {
-  private Piece[] boardPositions;
-  private Move generatorMove;
-  private Player currentPlayer;
-  private Player opponentPlayer;
-  private ArrayList<Piece> whitePieces;
-  private ArrayList<Piece> blackPieces;
+  private final Piece[] boardPositions;
+  private final Move generatorMove;
+  private final Player currentPlayer;
+  private final Player opponentPlayer;
+  private final ArrayList<Piece> whitePieces;
+  private final ArrayList<Piece> blackPieces;
 
-  private Piece enPassant;
+  private final Piece enPassant;
 
   public Board(Piece[] boardPositions,
                Move generatorMove,
@@ -102,6 +102,8 @@ public class Board {
   // Creates a "standard" starting board
   public Board(Color startingPlayerColor) {
     boardPositions = new Piece[64];
+    this.generatorMove = null;
+    this.enPassant = null;
 
     this.blackPieces = new ArrayList<>();
     this.whitePieces = new ArrayList<>();
@@ -180,56 +182,28 @@ public class Board {
     return boardPositions;
   }
 
-  public void setBoardPositions(Piece[] boardPositions) {
-    this.boardPositions = boardPositions;
-  }
-
   public Player getCurrentPlayer() {
     return currentPlayer;
-  }
-
-  public void setCurrentPlayer(Player currentPlayer) {
-    this.currentPlayer = currentPlayer;
   }
 
   public Player getOpponentPlayer() {
     return opponentPlayer;
   }
 
-  public void setOpponentPlayer(Player opponentPlayer) {
-    this.opponentPlayer = opponentPlayer;
-  }
-
   public Move getGeneratorMove() {
     return generatorMove;
-  }
-
-  public void setGeneratorMove(Move generatorMove) {
-    this.generatorMove = generatorMove;
   }
 
   public ArrayList<Piece> getWhitePieces() {
     return whitePieces;
   }
 
-  public void setWhitePieces(ArrayList<Piece> whitePieces) {
-    this.whitePieces = whitePieces;
-  }
-
   public ArrayList<Piece> getBlackPieces() {
     return blackPieces;
   }
 
-  public void setBlackPieces(ArrayList<Piece> blackPieces) {
-    this.blackPieces = blackPieces;
-  }
-
   public Piece getEnPassant() {
     return enPassant;
-  }
-
-  public void setEnPassant(Piece enPassant) {
-    this.enPassant = enPassant;
   }
 
   public ArrayList<Move> getAllPossibleLegalMoves() {
@@ -329,20 +303,6 @@ public class Board {
             ? this.getCurrentPlayer()
             : this.getOpponentPlayer();
   }
-
-  /*
-  public King getWhitePlayerKing() {
-    return this.currentPlayerKing.getColor() == Color.WHITE
-            ? this.currentPlayerKing
-            : this.opponentPlayerKing;
-  }
-
-  public King getBlackPlayerKing() {
-    return this.currentPlayerKing.getColor() == Color.BLACK
-            ? this.currentPlayerKing
-            : this.opponentPlayerKing;
-  }
-  */
 
   @Override
   public String toString() {

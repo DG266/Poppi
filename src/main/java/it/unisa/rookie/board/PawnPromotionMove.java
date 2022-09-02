@@ -7,7 +7,7 @@ import it.unisa.rookie.piece.Position;
 import java.util.ArrayList;
 
 public class PawnPromotionMove extends Move {
-  private Piece promotionPiece;
+  private final Piece promotionPiece;
 
   public PawnPromotionMove(Board board, Position source, Position destination, Piece movedPiece,
                            Piece promotionPiece) {
@@ -17,10 +17,6 @@ public class PawnPromotionMove extends Move {
 
   public Piece getPromotionPiece() {
     return promotionPiece;
-  }
-
-  public void setPromotionPiece(Piece promotionPiece) {
-    this.promotionPiece = promotionPiece;
   }
 
   @Override
@@ -78,6 +74,9 @@ public class PawnPromotionMove extends Move {
     if (currentPlayerColor == Color.WHITE) {
       whiteScore -= ChessPieceType.PAWN.getValue();
       whiteScore += this.promotionPiece.getType().getValue();
+    } else {
+      blackScore -= ChessPieceType.PAWN.getValue();
+      blackScore += this.promotionPiece.getType().getValue();
     }
 
     // Choose the next player

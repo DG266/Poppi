@@ -62,6 +62,9 @@ public class MiniMaxPlayer implements ArtificialIntelligencePlayer {
     Move bestMove = new Move();
 
     for (Move move : board.getCurrentPlayer().getLegalMoves()) {
+      if (this.depth == depth) {
+        System.out.println("\tAnalyzing: " + move);
+      }
       Board transitionedBoard = move.makeMove();
       if (transitionedBoard.getOpponentPlayer().isKingInCheck()) {
         continue;
@@ -85,6 +88,9 @@ public class MiniMaxPlayer implements ArtificialIntelligencePlayer {
     Move bestMove = new Move();
 
     for (Move move : board.getCurrentPlayer().getLegalMoves()) {
+      if (this.depth == depth) {
+        System.out.println("\tAnalyzing: " + move);
+      }
       Board transitionedBoard = move.makeMove();
       if (transitionedBoard.getOpponentPlayer().isKingInCheck()) {
         continue;

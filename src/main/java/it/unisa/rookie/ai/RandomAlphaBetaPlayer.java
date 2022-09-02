@@ -68,6 +68,9 @@ public class RandomAlphaBetaPlayer implements ArtificialIntelligencePlayer {
     Collections.shuffle(legalMoves);
 
     for (Move move : legalMoves) {
+      if (this.depth == depth) {
+        System.out.println("\tAnalyzing: " + move);
+      }
       Board transitionedBoard = move.makeMove();
       if (transitionedBoard.getOpponentPlayer().isKingInCheck()) {
         continue;
@@ -99,6 +102,9 @@ public class RandomAlphaBetaPlayer implements ArtificialIntelligencePlayer {
     Collections.shuffle(legalMoves);
 
     for (Move move : legalMoves) {
+      if (this.depth == depth) {
+        System.out.println("\tAnalyzing: " + move);
+      }
       Board transitionedBoard = move.makeMove();
       if (transitionedBoard.getOpponentPlayer().isKingInCheck()) {
         continue;

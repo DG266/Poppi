@@ -48,20 +48,7 @@ public class Pawn extends Piece {
       if (offset == 8 && board.getPiece(candidateDestination) == null) {
         // If (promotion tile)
         if (isPromotionTile(candidateDestination)) {
-
-          // TODO: Add more options (promote to queen/rook/knight/bishop)
-          Piece pawnToQueen = new Queen(
-                  this.getColor(),
-                  Position.values()[candidateDestination],
-                  false
-          );
-
-          moves.add(new PawnPromotionMove(board,
-                  this.getPosition(),
-                  Position.values()[candidateDestination],
-                  this,
-                  pawnToQueen)
-          );
+          addPromotionMoves(moves, candidateDestination, board);
         } else {
           moves.add(new Move(board,
                   this.getPosition(),
@@ -92,17 +79,7 @@ public class Pawn extends Piece {
           if (pieceToCapture.getColor() != this.getColor()) {
             // If (promotion tile)
             if (isPromotionTile(candidateDestination)) {
-              Piece pawnToQueen = new Queen(
-                      this.getColor(),
-                      Position.values()[candidateDestination],
-                      false
-              );
-              moves.add(new PawnPromotionMove(board,
-                      this.getPosition(),
-                      Position.values()[candidateDestination],
-                      this,
-                      pawnToQueen)
-              );
+              addPromotionMoves(moves, candidateDestination, board);
             } else {
               moves.add(new Move(board,
                       this.getPosition(),
@@ -134,17 +111,7 @@ public class Pawn extends Piece {
           if (pieceToCapture.getColor() != this.getColor()) {
             // If (promotion tile)
             if (isPromotionTile(candidateDestination)) {
-              Piece pawnToQueen = new Queen(
-                      this.getColor(),
-                      Position.values()[candidateDestination],
-                      false
-              );
-              moves.add(new PawnPromotionMove(board,
-                      this.getPosition(),
-                      Position.values()[candidateDestination],
-                      this,
-                      pawnToQueen)
-              );
+              addPromotionMoves(moves, candidateDestination, board);
             } else {
               moves.add(new Move(board,
                       this.getPosition(),
@@ -177,5 +144,55 @@ public class Pawn extends Piece {
     } else {
       return (destination >= 56 && destination < 64);
     }
+  }
+
+  private void addPromotionMoves(ArrayList<Move> moves, int destination, Board board) {
+    Piece pawnToQueen = new Queen(
+            this.getColor(),
+            Position.values()[destination],
+            false
+    );
+    moves.add(new PawnPromotionMove(board,
+            this.getPosition(),
+            Position.values()[destination],
+            this,
+            pawnToQueen)
+    );
+
+    Piece pawnToRook = new Rook(
+            this.getColor(),
+            Position.values()[destination],
+            false
+    );
+    moves.add(new PawnPromotionMove(board,
+            this.getPosition(),
+            Position.values()[destination],
+            this,
+            pawnToRook)
+    );
+
+    Piece pawnToBishop = new Bishop(
+            this.getColor(),
+            Position.values()[destination],
+            false
+    );
+    moves.add(new PawnPromotionMove(board,
+            this.getPosition(),
+            Position.values()[destination],
+            this,
+            pawnToBishop)
+    );
+
+    Piece pawnToKnight = new Knight(
+            this.getColor(),
+            Position.values()[destination],
+            false
+    );
+    moves.add(new PawnPromotionMove(board,
+            this.getPosition(),
+            Position.values()[destination],
+            this,
+            pawnToKnight)
+    );
   }
 }
