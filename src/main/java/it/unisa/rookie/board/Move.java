@@ -49,6 +49,10 @@ public class Move {
     return movedPiece;
   }
 
+  public boolean isCaptureMove() {
+    return this.board.getPiece(this.destination.getValue()) != null;
+  }
+
   // Generates a completely new board
   public Board makeMove() {
     ArrayList<Piece> whitePieces = new ArrayList<>(this.board.getWhitePieces());
@@ -153,7 +157,8 @@ public class Move {
   public String toString() {
     return movedPiece.getType()
             + " " + source
-            + " to " + destination;
+            + " to " + destination
+            + " | isCapt = " + isCaptureMove();
   }
 
   @Override

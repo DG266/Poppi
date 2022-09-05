@@ -3,9 +3,34 @@ package it.unisa.rookie.board.evaluation;
 import it.unisa.rookie.board.Board;
 import it.unisa.rookie.board.Move;
 import it.unisa.rookie.board.Player;
+import it.unisa.rookie.piece.ChessPieceType;
+import it.unisa.rookie.piece.Color;
 import it.unisa.rookie.piece.Piece;
 
 public class MediumCostEvaluator implements Evaluator {
+  // Values taken from: https://www.chessprogramming.org/Simplified_Evaluation_Function
+  private static final int[] WHITE_PAWN_STRUCTURE = {
+      0,  0,  0,  0,  0,  0,  0,  0,
+      50, 50, 50, 50, 50, 50, 50, 50,
+      10, 10, 20, 30, 30, 20, 10, 10,
+      5,  5, 10, 25, 25, 10,  5,  5,
+      0,  0,  0, 20, 20,  0,  0,  0,
+      5, -5, -10,  0,  0, -10, -5,  5,
+      5, 10, 10, -20, -20, 10, 10,  5,
+      0,  0,  0,  0,  0,  0,  0,  0
+  };
+
+  private static final int[] BLACK_PAWN_STRUCTURE = {
+      0,  0,  0,  0,  0,  0,  0,  0,
+      5, 10, 10, -20, -20, 10, 10,  5,
+      5, -5, -10,  0,  0, -10, -5,  5,
+      0,  0,  0, 20, 20,  0,  0,  0,
+      5,  5, 10, 25, 25, 10,  5,  5,
+      10, 10, 20, 30, 30, 20, 10, 10,
+      50, 50, 50, 50, 50, 50, 50, 50,
+      0,  0,  0,  0,  0,  0,  0,  0
+  };
+
   @Override
   public int evaluate(Board board) {
     return getScoreByPlayer(board.getWhitePlayer()) - getScoreByPlayer(board.getBlackPlayer());
@@ -15,7 +40,8 @@ public class MediumCostEvaluator implements Evaluator {
     // TODO: add some weights (maybe)
     return player.getMaterialCount()
             + availableGoodAttacks(player)
-            + kingInCheckBonus(player);
+            + kingInCheckBonus(player)
+            + pawnStructureScore(player);
   }
 
   private int availableGoodAttacks(Player player) {
@@ -52,16 +78,24 @@ public class MediumCostEvaluator implements Evaluator {
     return 0;
   }
 
-  /*
-  private int pieceValueCount(Player player) {
-    int pieceValueScore = 0;
-
-    for (Piece p : player.getPieces()) {
-      pieceValueScore += p.getType().getValue();
+  private int pawnStructureScore(Player player) {
+    int structureScore = 0;
+    if (player.getPlayerColor() == Color.WHITE) {
+      for (Piece p : player.getPieces()) {
+        if (p.getType() == ChessPieceType.PAWN) {
+          structureScore += WHITE_PAWN_STRUCTURE[p.getPosition().getValue()];
+        }
+      }
+    } else {
+      for (Piece p : player.getPieces()) {
+        if (p.getType() == ChessPieceType.PAWN) {
+          structureScore += BLACK_PAWN_STRUCTURE[p.getPosition().getValue()];
+        }
+      }
     }
-    return pieceValueScore;
+
+    return structureScore;
   }
-  */
 
   @Override
   public String toString() {

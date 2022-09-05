@@ -9,22 +9,28 @@ import it.unisa.rookie.board.evaluation.Evaluator;
 import it.unisa.rookie.piece.Color;
 import java.util.ArrayList;
 
-public class AlphaBetaPlayerWithMoveOrderingAndKillerMoves implements ArtificialIntelligencePlayer {
+public class AlphaBetaPlayerWithMoveOrderingAndKillerMovesAndQuiescenceSearch implements ArtificialIntelligencePlayer {
   private int depth;
   private int examinedBoards;
   private Evaluator evaluator;
 
   private Move[][] killerMoves;
 
+  private int numberOfQuiescenceSearches;
+
   private static final int MAX_DISTANCE_FROM_ROOT = 64;  // Just use a large value
   private static final int KILLER_MOVES_SLOTS = 2;
 
-  public AlphaBetaPlayerWithMoveOrderingAndKillerMoves(int depth, Evaluator evaluator) {
+  private static final int MAX_QUIESCENCE_SEARCHES = 10000;
+
+  public AlphaBetaPlayerWithMoveOrderingAndKillerMovesAndQuiescenceSearch(int depth, Evaluator evaluator) {
     this.depth = depth;
     this.evaluator = evaluator;
     this.examinedBoards = 0;
 
     this.killerMoves = new Move[MAX_DISTANCE_FROM_ROOT][KILLER_MOVES_SLOTS];
+
+    this.numberOfQuiescenceSearches = 0;
   }
 
   @Override
@@ -35,7 +41,7 @@ public class AlphaBetaPlayerWithMoveOrderingAndKillerMoves implements Artificial
     if (startingBoard.getCurrentPlayer().getPlayerColor() == Color.WHITE) {
       // White starts as maximizing player
       System.out.println("White player AI starting... "
-              + "(algorithm = AlphaBetaMoveOrderingKillerMoves) "
+              + "(algorithm = AlphaBetaMoveOrderingKillerMovesQuiescence) "
               + "(depth = " + this.depth + ") "
               + "(evaluator = " + this.evaluator + ")"
       );
@@ -43,7 +49,7 @@ public class AlphaBetaPlayerWithMoveOrderingAndKillerMoves implements Artificial
     } else {
       // Black starts as minimizing player
       System.out.println("Black player AI starting... "
-              + "(algorithm = AlphaBetaMoveOrderingKillerMoves) "
+              + "(algorithm = AlphaBetaMoveOrderingKillerMovesQuiescence) "
               + "(depth = " + this.depth + ") "
               + "(evaluator = " + this.evaluator + ")"
       );
@@ -86,7 +92,7 @@ public class AlphaBetaPlayerWithMoveOrderingAndKillerMoves implements Artificial
         continue;
       }
 
-      ScoredMove scoredMove = min(transitionedBoard, depth - 1, alpha, beta);
+      ScoredMove scoredMove = min(transitionedBoard, getQuiescenceDepth(transitionedBoard, depth), alpha, beta);
 
       if (scoredMove.getScore() > highestScore) {
         highestScore = scoredMove.getScore();
@@ -131,7 +137,7 @@ public class AlphaBetaPlayerWithMoveOrderingAndKillerMoves implements Artificial
         continue;
       }
 
-      ScoredMove scoredMove = max(transitionedBoard, depth - 1, alpha, beta);
+      ScoredMove scoredMove = max(transitionedBoard, getQuiescenceDepth(transitionedBoard, depth), alpha, beta);
       if (scoredMove.getScore() < lowestScore) {
         lowestScore = scoredMove.getScore();
         bestMove = move;
@@ -161,5 +167,41 @@ public class AlphaBetaPlayerWithMoveOrderingAndKillerMoves implements Artificial
     }
   }
 
+  private int getQuiescenceDepth(Board transitionedBoard, int currentDepth) {
+    if (currentDepth == 1 && this.numberOfQuiescenceSearches < MAX_QUIESCENCE_SEARCHES) {
+      int notQuiescentCounter = 0;
+      // TODO: are 2 moves enough?
+      // Check if the last 2 moves are capture moves.
+      //
+      // Consider transitionedBoard as the n-th board:
+      // - lastMove is the move that generated transitionedBoard, so
+      //   its board is the (n-1)-th board
+      // - lastLastMove is the move that generated the (n-1)-th board, so
+      //   its board is the (n-2)-th board
+      //
+      //  (n-2)-th board -----> (n-1)-th board -----> n-th board (transitionedBoard)
+      //                   |                     |
+      //              lastLastMove            lastMove
+      //
+      Move lastMove = transitionedBoard.getGeneratorMove();
+      if (lastMove.isCaptureMove()) {
+        notQuiescentCounter += 1;
+      }
 
+      Move lastLastMove = lastMove.getBoard().getGeneratorMove();
+      if (lastLastMove.isCaptureMove()) {
+        notQuiescentCounter += 1;
+      }
+
+      if (transitionedBoard.getCurrentPlayer().isKingInCheck()) {
+        notQuiescentCounter += 1;
+      }
+
+      if (notQuiescentCounter >= 2) {
+        this.numberOfQuiescenceSearches++;
+        return currentDepth + 1;   // Basically it's always 1 + 1 = 2 (go 1 ply deeper)
+      }
+    }
+    return currentDepth - 1;  // Proceed normally (no quiescence search)
+  }
 }

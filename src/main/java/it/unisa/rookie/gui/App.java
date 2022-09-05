@@ -3,6 +3,7 @@ package it.unisa.rookie.gui;
 import it.unisa.rookie.ai.AlphaBetaPlayer;
 import it.unisa.rookie.ai.AlphaBetaPlayerWithMoveOrdering;
 import it.unisa.rookie.ai.AlphaBetaPlayerWithMoveOrderingAndKillerMoves;
+import it.unisa.rookie.ai.AlphaBetaPlayerWithMoveOrderingAndKillerMovesAndQuiescenceSearch;
 import it.unisa.rookie.ai.ArtificialIntelligencePlayer;
 import it.unisa.rookie.ai.ArtificialIntelligenceTask;
 import it.unisa.rookie.ai.MiniMaxPlayer;
@@ -49,6 +50,7 @@ import javafx.scene.control.TextArea;
 import javafx.scene.control.TextField;
 import javafx.scene.control.ToggleGroup;
 import javafx.scene.image.Image;
+import javafx.scene.input.Mnemonic;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.Background;
 import javafx.scene.layout.BackgroundFill;
@@ -83,6 +85,7 @@ public class App extends Application {
 
   private CheckMenuItem logMenuItem;
   private TextArea log;
+  private MenuItem printBoardEvaluationItem;
 
   private RadioMenuItem randomPlayerItem;
   private RadioMenuItem minimaxPlayerItem;
@@ -90,6 +93,7 @@ public class App extends Application {
   private RadioMenuItem randomAlphaBetaPlayerItem;
   private RadioMenuItem moveOrderingAlphaBetaPlayerItem;
   private RadioMenuItem killerAlphaBetaPlayerItem;
+  private RadioMenuItem quiescenceAlphaBetaPlayerItem;
   private RadioMenuItem lowCostEvItem;
   private RadioMenuItem medCostEvItem;
   private RadioMenuItem highCostEvItem;
@@ -132,9 +136,14 @@ public class App extends Application {
       }
     });
 
+    printBoardEvaluationItem = new MenuItem("Print current board evaluation");
+    printBoardEvaluationItem.setOnAction((ActionEvent t) -> {
+      log.appendText(new HighCostEvaluator().getEvaluationDescription(gameBoard));
+    });
+
     logMenuItem.setSelected(true);
 
-    actionsMenu.getItems().addAll(logMenuItem);
+    actionsMenu.getItems().addAll(logMenuItem, printBoardEvaluationItem);
 
     // Player Type Menu
     final Menu playerTypeMenu = new Menu("AI Player Type");
@@ -145,6 +154,7 @@ public class App extends Application {
     randomAlphaBetaPlayerItem = new RadioMenuItem("Random Alpha Beta Pruning player");
     moveOrderingAlphaBetaPlayerItem = new RadioMenuItem("Alpha Beta Pruning with move ordering player");
     killerAlphaBetaPlayerItem = new RadioMenuItem("Alpha Beta Pruning with move ordering and killer moves player");
+    quiescenceAlphaBetaPlayerItem = new RadioMenuItem("Alpha Beta Pruning with move ordering, killer moves and quiescence search player");
 
     ToggleGroup playerRadioGroup = new ToggleGroup();
 
@@ -154,9 +164,10 @@ public class App extends Application {
     randomAlphaBetaPlayerItem.setToggleGroup(playerRadioGroup);
     moveOrderingAlphaBetaPlayerItem.setToggleGroup(playerRadioGroup);
     killerAlphaBetaPlayerItem.setToggleGroup(playerRadioGroup);
+    quiescenceAlphaBetaPlayerItem.setToggleGroup(playerRadioGroup);
 
     // Default value
-    killerAlphaBetaPlayerItem.setSelected(true);
+    quiescenceAlphaBetaPlayerItem.setSelected(true);
 
     playerTypeMenu.getItems().addAll(
             randomPlayerItem,
@@ -164,7 +175,8 @@ public class App extends Application {
             alphaBetaPlayerItem,
             randomAlphaBetaPlayerItem,
             moveOrderingAlphaBetaPlayerItem,
-            killerAlphaBetaPlayerItem
+            killerAlphaBetaPlayerItem,
+            quiescenceAlphaBetaPlayerItem
     );
 
     // Evaluator Type Menu
@@ -493,7 +505,9 @@ public class App extends Application {
     }
 
     // Read user-chosen AI player type
-    if (killerAlphaBetaPlayerItem.isSelected()) {
+    if (quiescenceAlphaBetaPlayerItem.isSelected()) {
+      ai = new AlphaBetaPlayerWithMoveOrderingAndKillerMovesAndQuiescenceSearch(depth, ev);
+    } else if (killerAlphaBetaPlayerItem.isSelected()) {
       ai = new AlphaBetaPlayerWithMoveOrderingAndKillerMoves(depth, ev);
     } else if (moveOrderingAlphaBetaPlayerItem.isSelected()) {
       ai = new AlphaBetaPlayerWithMoveOrdering(depth, ev);
@@ -540,6 +554,9 @@ public class App extends Application {
         this.isBlackAiCheckBox.setDisable(true);
       }
       createArtificialIntelligenceTask();
+    } else if (!isComputerTurn()) {
+      this.isWhiteAiCheckBox.setDisable(false);
+      this.isBlackAiCheckBox.setDisable(false);
     }
   }
 

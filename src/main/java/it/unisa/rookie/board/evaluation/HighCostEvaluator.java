@@ -4,32 +4,163 @@ import it.unisa.rookie.board.Board;
 import it.unisa.rookie.board.CastlingMove;
 import it.unisa.rookie.board.Move;
 import it.unisa.rookie.board.Player;
-import it.unisa.rookie.piece.ChessPieceType;
 import it.unisa.rookie.piece.Color;
 import it.unisa.rookie.piece.Piece;
 
 public class HighCostEvaluator implements Evaluator {
-
+  // Values taken from: https://www.chessprogramming.org/Simplified_Evaluation_Function
   private static final int[] WHITE_PAWN_STRUCTURE = {
       0,  0,  0,  0,  0,  0,  0,  0,
       50, 50, 50, 50, 50, 50, 50, 50,
       10, 10, 20, 30, 30, 20, 10, 10,
       5,  5, 10, 25, 25, 10,  5,  5,
       0,  0,  0, 20, 20,  0,  0,  0,
-      5, -5,-10,  0,  0,-10, -5,  5,
-      5, 10, 10,-20,-20, 10, 10,  5,
+      5, -5, -10,  0,  0, -10, -5,  5,
+      5, 10, 10, -20, -20, 10, 10,  5,
       0,  0,  0,  0,  0,  0,  0,  0
   };
 
   private static final int[] BLACK_PAWN_STRUCTURE = {
       0,  0,  0,  0,  0,  0,  0,  0,
-      5, 10, 10,-20,-20, 10, 10,  5,
-      5, -5,-10,  0,  0,-10, -5,  5,
+      5, 10, 10, -20, -20, 10, 10,  5,
+      5, -5, -10,  0,  0, -10, -5,  5,
       0,  0,  0, 20, 20,  0,  0,  0,
       5,  5, 10, 25, 25, 10,  5,  5,
       10, 10, 20, 30, 30, 20, 10, 10,
       50, 50, 50, 50, 50, 50, 50, 50,
       0,  0,  0,  0,  0,  0,  0,  0
+  };
+
+  private static final int[] WHITE_KNIGHT_STRUCTURE = {
+      -50, -40, -30, -30, -30, -30, -40, -50,
+      -40, -20,  0,  0,  0,  0, -20, -40,
+      -30,  0, 10, 15, 15, 10,  0, -30,
+      -30,  5, 15, 20, 20, 15,  5, -30,
+      -30,  0, 15, 20, 20, 15,  0, -30,
+      -30,  5, 10, 15, 15, 10,  5, -30,
+      -40, -20,  0,  5,  5,  0, -20, -40,
+      -50, -40, -30, -30, -30, -30, -40, -50
+  };
+
+  private static final int[] BLACK_KNIGHT_STRUCTURE = {
+      -50, -40, -30, -30, -30, -30, -40, -50,
+      -40, -20,  0,  5,  5,  0, -20, -40,
+      -30,  5, 10, 15, 15, 10,  5, -30,
+      -30,  0, 15, 20, 20, 15,  0, -30,
+      -30,  5, 15, 20, 20, 15,  5, -30,
+      -30,  0, 10, 15, 15, 10,  0, -30,
+      -40, -20,  0,  0,  0,  0, -20, -40,
+      -50, -40, -30, -30, -30, -30, -40, -50
+  };
+
+  private static final int[] WHITE_BISHOP_STRUCTURE = {
+      -20, -10, -10, -10, -10, -10, -10, -20,
+      -10,  0,  0,  0,  0,  0,  0, -10,
+      -10,  0,  5, 10, 10,  5,  0, -10,
+      -10,  5,  5, 10, 10,  5,  5, -10,
+      -10,  0, 10, 10, 10, 10,  0, -10,
+      -10, 10, 10, 10, 10, 10, 10, -10,
+      -10,  5,  0,  0,  0,  0,  5, -10,
+      -20, -10, -10, -10, -10, -10, -10, -20
+  };
+
+  private static final int[] BLACK_BISHOP_STRUCTURE = {
+      -20, -10, -10, -10, -10, -10, -10, -20,
+      -10,  5,  0,  0,  0,  0,  5, -10,
+      -10, 10, 10, 10, 10, 10, 10, -10,
+      -10,  0, 10, 10, 10, 10,  0, -10,
+      -10,  5,  5, 10, 10,  5,  5, -10,
+      -10,  0,  5, 10, 10,  5,  0, -10,
+      -10,  0,  0,  0,  0,  0,  0, -10,
+      -20, -10, -10, -10, -10, -10, -10, -20
+  };
+
+  private static final int[] WHITE_ROOK_STRUCTURE = {
+      0,  0,  0,  0,  0,  0,  0,  0,
+      5, 10, 10, 10, 10, 10, 10,  5,
+      -5,  0,  0,  0,  0,  0,  0, -5,
+      -5,  0,  0,  0,  0,  0,  0, -5,
+      -5,  0,  0,  0,  0,  0,  0, -5,
+      -5,  0,  0,  0,  0,  0,  0, -5,
+      -5,  0,  0,  0,  0,  0,  0, -5,
+      0,  0,  0,  5,  5,  0,  0,  0
+  };
+
+  private static final int[] BLACK_ROOK_STRUCTURE = {
+      0,  0,  0,  5,  5,  0,  0,  0,
+    -5,  0,  0,  0,  0,  0,  0, -5,
+    -5,  0,  0,  0,  0,  0,  0, -5,
+    -5,  0,  0,  0,  0,  0,  0, -5,
+    -5,  0,  0,  0,  0,  0,  0, -5,
+    -5,  0,  0,  0,  0,  0,  0, -5,
+      5, 10, 10, 10, 10, 10, 10,  5,
+      0,  0,  0,  0,  0,  0,  0,  0
+  };
+
+  private static final int[] WHITE_QUEEN_STRUCTURE = {
+      -20, -10, -10, -5, -5, -10, -10, -20,
+      -10,  0,  0,  0,  0,  0,  0, -10,
+      -10,  0,  5,  5,  5,  5,  0, -10,
+      -5,  0,  5,  5,  5,  5,  0, -5,
+      0,  0,  5,  5,  5,  5,  0, -5,
+      -10,  5,  5,  5,  5,  5,  0, -10,
+      -10,  0,  5,  0,  0,  0,  0, -10,
+      -20, -10, -10, -5, -5, -10, -10, -20
+  };
+
+  private static final int[] BLACK_QUEEN_STRUCTURE = {
+      -20, -10, -10, -5, -5, -10, -10, -20,
+      -10,  0,  5,  0,  0,  0,  0, -10,
+      -10,  5,  5,  5,  5,  5,  0, -10,
+      0,  0,  5,  5,  5,  5,  0, -5,
+      -5,  0,  5,  5,  5,  5,  0, -5,
+      -10,  0,  5,  5,  5,  5,  0, -10,
+      -10,  0,  0,  0,  0,  0,  0, -10,
+      -20, -10, -10, -5, -5, -10, -10, -20
+  };
+
+  private static final int[] WHITE_KING_MIDDLE_GAME_STRUCTURE = {
+      -30, -40, -40, -50, -50, -40, -40, -30,
+      -30, -40, -40, -50, -50, -40, -40, -30,
+      -30, -40, -40, -50, -50, -40, -40, -30,
+      -30, -40, -40, -50, -50, -40, -40, -30,
+      -20, -30, -30, -40, -40, -30, -30, -20,
+      -10, -20, -20, -20, -20, -20, -20, -10,
+      20,   20,   0,   0,   0,   0,  20,  20,
+      20,   30,  10,   0,   0,  10,  30,  20
+  };
+
+  private static final int[] BLACK_KING_MIDDLE_GAME_STRUCTURE = {
+      20, 30, 10,  0,  0, 10, 30, 20,
+      20, 20,  0,  0,  0,  0, 20, 20,
+      -10, -20, -20, -20, -20, -20, -20, -10,
+      -20, -30, -30, -40, -40, -30, -30, -20,
+      -30, -40, -40, -50, -50, -40, -40, -30,
+      -30, -40, -40, -50, -50, -40, -40, -30,
+      -30, -40, -40, -50, -50, -40, -40, -30,
+      -30, -40, -40, -50, -50, -40, -40, -30
+  };
+
+  private static final int[] WHITE_KING_END_GAME_STRUCTURE = {
+      -50, -40, -30, -20, -20, -30, -40, -50,
+      -30, -20, -10,  0,  0, -10, -20, -30,
+      -30, -10, 20, 30, 30, 20, -10, -30,
+      -30, -10, 30, 40, 40, 30, -10, -30,
+      -30, -10, 30, 40, 40, 30, -10, -30,
+      -30, -10, 20, 30, 30, 20, -10, -30,
+      -30, -30,  0,  0,  0,  0, -30, -30,
+      -50, -30, -30, -30, -30, -30, -30, -50
+  };
+
+  private static final int[] BLACK_KING_END_GAME_STRUCTURE = {
+      -50, -30, -30, -30, -30, -30, -30, -50,
+      -30, -30,  0,  0,  0,  0, -30, -30,
+      -30, -10, 20, 30, 30, 20, -10, -30,
+      -30, -10, 30, 40, 40, 30, -10, -30,
+      -30, -10, 30, 40, 40, 30, -10, -30,
+      -30, -10, 20, 30, 30, 20, -10, -30,
+      -30, -20, -10,  0,  0, -10, -20, -30,
+      -50, -40, -30, -20, -20, -30, -40, -50
   };
 
   @Override
@@ -44,19 +175,8 @@ public class HighCostEvaluator implements Evaluator {
             + availableGoodAttacks(player)
             + castlingEvaluation(player)
             + kingInCheckBonus(player)
-            + pawnStructureScore(player);
+            + generalStructure(player);
   }
-
-  /*
-  private int pieceValueCount(Player player) {
-    int pieceValueScore = 0;
-
-    for (Piece p : player.getPieces()) {
-      pieceValueScore += p.getType().getValue();
-    }
-    return pieceValueScore;
-  }
-  */
 
   private int mobility(Player player) {
     return player.getLegalMoves().size();
@@ -85,10 +205,13 @@ public class HighCostEvaluator implements Evaluator {
 
   private int castlingEvaluation(Player player) {
     Move m = player.getPlayingBoard().getGeneratorMove();
-    boolean isCastlingMove = (m instanceof CastlingMove);
-    boolean playerMadeThisMove = m.getMovedPiece().getColor() == player.getPlayerColor();
+    if (m != null) {
+      boolean isCastlingMove = (m instanceof CastlingMove);
+      boolean playerMadeThisMove = m.getMovedPiece().getColor() == player.getPlayerColor();
 
-    return (isCastlingMove && playerMadeThisMove) ? 500 : 0;
+      return (isCastlingMove && playerMadeThisMove) ? 500 : 0;
+    }
+    return 0;
   }
 
   private int kingInCheckBonus(Player player) {
@@ -104,22 +227,59 @@ public class HighCostEvaluator implements Evaluator {
     return 0;
   }
 
-  private int pawnStructureScore(Player player) {
+  private int generalStructure(Player player) {
     int structureScore = 0;
+    int totalPieces = player.getPieces().size() + player.getOpponentPlayer().getPieces().size();
+
     if (player.getPlayerColor() == Color.WHITE) {
       for (Piece p : player.getPieces()) {
-        if (p.getType() == ChessPieceType.PAWN) {
-          structureScore += WHITE_PAWN_STRUCTURE[p.getPosition().getValue()];
+        int pos = p.getPosition().getValue();
+        switch (p.getType()) {
+          case PAWN: structureScore += WHITE_PAWN_STRUCTURE[pos];
+          break;
+          case KNIGHT: structureScore += WHITE_KNIGHT_STRUCTURE[pos];
+          break;
+          case BISHOP: structureScore += WHITE_BISHOP_STRUCTURE[pos];
+          break;
+          case ROOK: structureScore += WHITE_ROOK_STRUCTURE[pos];
+          break;
+          case QUEEN: structureScore += WHITE_QUEEN_STRUCTURE[pos];
+          break;
+          case KING: {
+            // This is an EXTREMELY BASIC example of "tapered eval"
+            int midGameValue = totalPieces * WHITE_KING_MIDDLE_GAME_STRUCTURE[pos];
+            int endGameValue = (32 - totalPieces) * WHITE_KING_END_GAME_STRUCTURE[pos];
+            structureScore += ((midGameValue + endGameValue) / 32);
+          }
+          break;
+          default:
         }
       }
     } else {
       for (Piece p : player.getPieces()) {
-        if (p.getType() == ChessPieceType.PAWN) {
-          structureScore += BLACK_PAWN_STRUCTURE[p.getPosition().getValue()];
+        int pos = p.getPosition().getValue();
+        switch (p.getType()) {
+          case PAWN: structureScore += BLACK_PAWN_STRUCTURE[pos];
+                     break;
+          case KNIGHT: structureScore += BLACK_KNIGHT_STRUCTURE[pos];
+          break;
+          case BISHOP: structureScore += BLACK_BISHOP_STRUCTURE[pos];
+          break;
+          case ROOK: structureScore += BLACK_ROOK_STRUCTURE[pos];
+          break;
+          case QUEEN: structureScore += BLACK_QUEEN_STRUCTURE[pos];
+          break;
+          case KING: {
+            // This is an EXTREMELY BASIC example of "tapered eval"
+            int midGameValue = totalPieces * BLACK_KING_MIDDLE_GAME_STRUCTURE[pos];
+            int endGameValue = (32 - totalPieces) * BLACK_KING_END_GAME_STRUCTURE[pos];
+            structureScore += ((midGameValue + endGameValue) / 32);
+          }
+          break;
+          default:
         }
       }
     }
-
     return structureScore;
   }
 
@@ -133,7 +293,7 @@ public class HighCostEvaluator implements Evaluator {
             + "Attacks bonus: " + availableGoodAttacks(w) + " | "
             + "Castling bonus: " + castlingEvaluation(w) + " | "
             + "Opponent King in check bonus: " + kingInCheckBonus(w) + " | "
-            + "Pawn Structure: " + pawnStructureScore(w) + "\n";
+            + "General Structure: " + generalStructure(w) + "\n";
     String result2 =
             "BLACK SCORE (" + getScoreByPlayer(b) + ") - "
             + "Pieces value: " + b.getMaterialCount() + " | "
@@ -141,33 +301,9 @@ public class HighCostEvaluator implements Evaluator {
             + "Attacks bonus: " + availableGoodAttacks(b) + " | "
             + "Castling bonus: " + castlingEvaluation(b) + " | "
             + "Opponent King in check bonus: " + kingInCheckBonus(b) + " | "
-            + "Pawn Structure: " + pawnStructureScore(b) + "\n";
+            + "General Structure: " + generalStructure(b) + "\n";
     return result1 + result2;
   }
-
-  /*
-  public String getEvaluationDescription(Board board) {
-    Player w = board.getWhitePlayer();
-    Player b = board.getBlackPlayer();
-    String result1 =
-            "* WHITE PLAYER" + "\n"
-            + "Pieces value: " + w.getMaterialCount() + "\n"
-            + "Mobility bonus: " + mobility(w) + "\n"
-            + "Attacks bonus: " + availableGoodAttacks(w) + "\n"
-            + "Castling bonus: " + castlingEvaluation(w) + "\n"
-            + "Opponent King in check bonus: " + kingInCheckBonus(w) + "\n"
-            + "Pawn Structure: " + pawnStructureScore(w) + "\n";
-    String result2 =
-            "* BLACK PLAYER" + "\n"
-            + "Pieces value: " + b.getMaterialCount() + "\n"
-            + "Mobility bonus: " + mobility(b) + "\n"
-            + "Attacks bonus: " + availableGoodAttacks(b) + "\n"
-            + "Castling bonus: " + castlingEvaluation(b) + "\n"
-            + "Opponent King in check bonus: " + kingInCheckBonus(b) + "\n"
-            + "Pawn Structure: " + pawnStructureScore(b) + "\n";
-    return result1 + result2;
-  }
-  */
 
   @Override
   public String toString() {
