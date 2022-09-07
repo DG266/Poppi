@@ -36,7 +36,7 @@ public class KillerMovesComparator implements Comparator<Move> {
   }
 
   public int score(Move m) {
-    if (m.getBoard().getPiece(m.getDestination().getValue()) != null) {
+    if (m.isCaptureMove()) {
       return mvvlva(m);
     } else if (m.equals(firstKillerMove)) {
       return 6;

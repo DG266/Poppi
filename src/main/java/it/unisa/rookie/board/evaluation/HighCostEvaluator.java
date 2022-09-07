@@ -260,7 +260,7 @@ public class HighCostEvaluator implements Evaluator {
         int pos = p.getPosition().getValue();
         switch (p.getType()) {
           case PAWN: structureScore += BLACK_PAWN_STRUCTURE[pos];
-                     break;
+          break;
           case KNIGHT: structureScore += BLACK_KNIGHT_STRUCTURE[pos];
           break;
           case BISHOP: structureScore += BLACK_BISHOP_STRUCTURE[pos];
